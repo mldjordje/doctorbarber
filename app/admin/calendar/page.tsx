@@ -39,6 +39,13 @@ type Block = {
   isStatic?: boolean;
 };
 
+type ScheduleBreak = {
+  start?: string;
+  end?: string;
+  duration?: number | string;
+  label?: string;
+};
+
 type AppointmentFormState = {
   date: string;
   time: string;
@@ -169,7 +176,7 @@ const parseDurationMinutes = (duration?: string | number) => {
 };
 
 const buildStaticBreaks = (
-  breaks: Array<{ start?: string; end?: string; duration?: number | string; label?: string }>,
+  breaks: ScheduleBreak[],
   dateKey: string,
   defaultDuration: number
 ) =>
@@ -309,7 +316,7 @@ export default function AdminCalendarPage() {
   const firstWorkingDay = useMemo(() => getNextWorkingDay(today), [today]);
   const lastDay = useMemo(() => addMonthsClamped(today, MONTHS_AHEAD), [today]);
   const { open, close, slotMinutes } = siteConfig.schedule;
-  const scheduleBreaks = useMemo(() => siteConfig.schedule.breaks ?? [], []);
+  const scheduleBreaks = useMemo<ScheduleBreak[]>(() => siteConfig.schedule.breaks ?? [], []);
 
   const [selectedDate, setSelectedDate] = useState(formatDate(firstWorkingDay));
   const [calendarMonth, setCalendarMonth] = useState(

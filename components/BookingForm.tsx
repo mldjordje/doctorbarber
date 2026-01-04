@@ -51,6 +51,13 @@ type AvailabilityItem = {
   duration?: string | number;
 };
 
+type ScheduleBreak = {
+  start?: string;
+  end?: string;
+  duration?: number | string;
+  label?: string;
+};
+
 type CalendarDay = {
   value: string | null;
   label: string;
@@ -287,7 +294,7 @@ const buildSlots = (
   const { open, close, slotMinutes } = siteConfig.schedule;
   const openMinutes = timeToMinutes(open);
   const closeMinutes = timeToMinutes(close);
-  const scheduleBreaks = siteConfig.schedule.breaks ?? [];
+  const scheduleBreaks: ScheduleBreak[] = siteConfig.schedule.breaks ?? [];
   const now = new Date();
   const isToday = date === formatDate(now);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
