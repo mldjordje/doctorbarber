@@ -36,6 +36,7 @@ type Block = {
   time: string;
   duration: number;
   note?: string;
+  isStatic?: boolean;
 };
 
 type AppointmentFormState = {
@@ -167,6 +168,43 @@ const parseDurationMinutes = (duration?: string | number) => {
   return Number.isFinite(number) ? number : 0;
 };
 
+const buildStaticBreaks = (
+  breaks: Array<{ start?: string; end?: string; duration?: number | string; label?: string }>,
+  dateKey: string,
+  defaultDuration: number
+) =>
+  breaks
+    .map((item, index) => {
+      if (!item.start) {
+        return null;
+      }
+
+      const startMinutes = timeToMinutes(item.start);
+      const endMinutes =
+        item.end != null
+          ? timeToMinutes(item.end)
+          : startMinutes + (parseDurationMinutes(item.duration) || defaultDuration);
+
+      if (!Number.isFinite(startMinutes) || !Number.isFinite(endMinutes)) {
+        return null;
+      }
+
+      const duration = endMinutes - startMinutes;
+      if (duration <= 0) {
+        return null;
+      }
+
+      return {
+        id: `schedule-break-${index}`,
+        date: dateKey,
+        time: minutesToTime(startMinutes),
+        duration,
+        note: item.label || "Pauza",
+        isStatic: true,
+      };
+    })
+    .filter(Boolean) as Block[];
+
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
@@ -271,6 +309,7 @@ export default function AdminCalendarPage() {
   const firstWorkingDay = useMemo(() => getNextWorkingDay(today), [today]);
   const lastDay = useMemo(() => addMonthsClamped(today, MONTHS_AHEAD), [today]);
   const { open, close, slotMinutes } = siteConfig.schedule;
+  const scheduleBreaks = useMemo(() => siteConfig.schedule.breaks ?? [], []);
 
   const [selectedDate, setSelectedDate] = useState(formatDate(firstWorkingDay));
   const [calendarMonth, setCalendarMonth] = useState(
@@ -375,7 +414,11 @@ export default function AdminCalendarPage() {
   const canGoNextMonth = calendarMonth < maxMonth;
 
   const selectedAppointments = appointmentsByDate[selectedDate] ?? [];
-  const selectedBlocks = blocksByDate[selectedDate] ?? [];
+  const selectedBlocks = useMemo(() => {
+    const baseBlocks = blocksByDate[selectedDate] ?? [];
+    const staticBreaks = buildStaticBreaks(scheduleBreaks, selectedDate, slotMinutes);
+    return [...baseBlocks, ...staticBreaks];
+  }, [blocksByDate, scheduleBreaks, selectedDate, slotMinutes]);
   const selectedService = useMemo(
     () => services.find((service) => service.id === appointmentForm.serviceId),
     [appointmentForm.serviceId]
@@ -410,7 +453,10 @@ export default function AdminCalendarPage() {
     weekDays.forEach((day, dayIndex) => {
       const dateKey = formatDate(day);
       const dayAppointments = appointmentsByDate[dateKey] ?? [];
-      const dayBlocks = blocksByDate[dateKey] ?? [];
+      const dayBlocks = [
+        ...(blocksByDate[dateKey] ?? []),
+        ...buildStaticBreaks(scheduleBreaks, dateKey, slotMinutes),
+      ];
 
       dayAppointments.forEach((appointment) => {
         const startMinutes = timeToMinutes(appointment.time);
@@ -460,7 +506,7 @@ export default function AdminCalendarPage() {
 
         items.push({
           id: `block-${block.id}`,
-          sourceId: block.id,
+          sourceId: block.isStatic ? undefined : block.id,
           date: dateKey,
           time: block.time,
           dayIndex,
@@ -476,7 +522,16 @@ export default function AdminCalendarPage() {
     });
 
     return items;
-  }, [weekDays, appointmentsByDate, blocksByDate, open, close, slotMinutes, slotCount]);
+  }, [
+    weekDays,
+    appointmentsByDate,
+    blocksByDate,
+    open,
+    close,
+    slotMinutes,
+    slotCount,
+    scheduleBreaks,
+  ]);
 
   const busySlots = useMemo(() => {
     const map = new Set<string>();
@@ -1352,22 +1407,24 @@ export default function AdminCalendarPage() {
                       {block.time} ({block.duration} min)
                     </strong>
                     {block.note && <span>{block.note}</span>}
-                    <div className="admin-actions">
-                      <button
-                        className="button outline"
-                        type="button"
-                        onClick={() => handleEditBlock(block)}
-                      >
-                        Izmeni
-                      </button>
-                      <button
-                        className="button outline"
-                        type="button"
-                        onClick={() => handleDeleteBlock(block.id)}
-                      >
-                        Obrisi
-                      </button>
-                    </div>
+                    {!block.isStatic && (
+                      <div className="admin-actions">
+                        <button
+                          className="button outline"
+                          type="button"
+                          onClick={() => handleEditBlock(block)}
+                        >
+                          Izmeni
+                        </button>
+                        <button
+                          className="button outline"
+                          type="button"
+                          onClick={() => handleDeleteBlock(block.id)}
+                        >
+                          Obrisi
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

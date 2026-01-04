@@ -287,6 +287,7 @@ const buildSlots = (
   const { open, close, slotMinutes } = siteConfig.schedule;
   const openMinutes = timeToMinutes(open);
   const closeMinutes = timeToMinutes(close);
+  const scheduleBreaks = siteConfig.schedule.breaks ?? [];
   const now = new Date();
   const isToday = date === formatDate(now);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -296,6 +297,23 @@ const buildSlots = (
     const start = timeToMinutes(item.time);
     const length = parseDurationMinutes(item.duration) || slotMinutes;
     return { start, end: start + length };
+  });
+
+  scheduleBreaks.forEach((scheduleBreak) => {
+    const start = scheduleBreak.start ? timeToMinutes(scheduleBreak.start) : NaN;
+    const end =
+      scheduleBreak.end != null
+        ? timeToMinutes(scheduleBreak.end)
+        : start + (parseDurationMinutes(scheduleBreak.duration) || slotMinutes);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+      return;
+    }
+    const clampedStart = Math.max(openMinutes, start);
+    const clampedEnd = Math.min(closeMinutes, end);
+    if (clampedEnd <= clampedStart) {
+      return;
+    }
+    reserved.push({ start: clampedStart, end: clampedEnd });
   });
 
   const slots: string[] = [];

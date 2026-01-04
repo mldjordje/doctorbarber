@@ -9,5 +9,12 @@ export const siteConfig = {
     close: "19:00",
     slotMinutes: 20,
     workingDays: [1, 2, 3, 4, 5],
+    breaks: [
+      {
+        start: "15:00",
+        end: "16:00",
+        label: "Pauza",
+      },
+    ],
   },
 };
