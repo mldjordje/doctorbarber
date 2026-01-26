@@ -4,6 +4,8 @@ export const siteConfig = {
   city: "Beograd",
   phone: "",
   email: "",
+  googleMapsUrl: "https://maps.app.goo.gl/V9ZjSA8dCXB2cwbn7",
+  googleReviewUrl: "https://maps.app.goo.gl/V9ZjSA8dCXB2cwbn7",
   schedule: {
     open: "11:00",
     close: "19:00",
