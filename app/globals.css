@@ -1791,6 +1791,10 @@ h4 {
   width: 100%;
 }
 
+.admin-shell--full .calendar-schedule__scroll {
+  max-height: calc(100vh - 220px);
+}
+
 .admin-shell__header {
   display: flex;
   align-items: flex-end;
@@ -2401,7 +2405,7 @@ h4 {
 }
 
 .calendar-item {
-  margin: 3px;
+  margin: 4px;
   padding: 5px 6px;
   border-radius: 10px;
   font-size: 0.7rem;

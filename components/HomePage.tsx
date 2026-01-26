@@ -611,11 +611,19 @@ export default function HomePage() {
               <div className="map-actions">
                 <a
                   className="button outline"
-                  href="https://maps.app.goo.gl/V9ZjSA8dCXB2cwbn7"
+                  href={siteConfig.googleMapsUrl}
                   target="_blank"
                   rel="noreferrer"
                 >
                   Otvori u Google Maps
+                </a>
+                <a
+                  className="button"
+                  href={siteConfig.googleReviewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Oceni me na Google
                 </a>
               </div>
             </motion.div>
@@ -673,7 +681,6 @@ export default function HomePage() {
     </div>
   );
 }
-
 
 
 
