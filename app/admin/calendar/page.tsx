@@ -12,6 +12,13 @@ import {
 } from "react";
 
 import AdminShell from "@/components/admin/AdminShell";
+import {
+  formatDateDDMMYYYY,
+  formatDateTimeDDMMYYYY,
+  formatSqlDateTimeDDMMYYYY,
+  formatWeekdayAndDate,
+  normalizeTime24,
+} from "@/lib/dateTime";
 import { fetchServices, services as fallbackServices, type Service } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
 import { useLanguage, type Language } from "@/lib/useLanguage";
@@ -136,28 +143,15 @@ const formatWeekday = (date: Date, locale: string) =>
     weekday: "short",
   }).format(date);
 
-const formatLongDate = (value: string, locale: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  }).format(date);
-};
+const formatLongDate = (value: string, locale: string) => formatWeekdayAndDate(value, locale);
 
-const formatRangeLabel = (start: Date, end: Date, locale: string) => {
-  const startLabel = new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "short",
-  }).format(start);
-  const endLabel = new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
-    month: "short",
-  }).format(end);
+const formatRangeLabel = (start: Date, end: Date) => {
+  const startLabel = formatDateDDMMYYYY(start);
+  const endLabel = formatDateDDMMYYYY(end);
   return `${startLabel} - ${endLabel}`;
 };
 
-const normalizeTimeInput = (value: string) => (value ? value.slice(0, 5) : "");
+const normalizeTimeInput = (value: string) => normalizeTime24(value);
 
 const normalizePhoneValue = (value: string) => value.replace(/\D+/g, "");
 const normalizeServiceKey = (value: string) =>
@@ -313,7 +307,7 @@ const buildTimeSlots = (
 
 export default function AdminCalendarPage() {
   const { language } = useLanguage();
-  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-US" : "it-IT";
+  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-GB" : "it-IT";
   const text: Record<Language, Record<string, string>> = {
     sr: {
       totalAppointments: "Ukupno termina",
@@ -499,8 +493,8 @@ export default function AdminCalendarPage() {
 
   const selectedDateLabel = selectedDate ? formatLongDate(selectedDate, locale) : "";
   const weekRangeLabel = useMemo(
-    () => formatRangeLabel(weekStart, weekEnd, locale),
-    [weekStart, weekEnd, locale]
+    () => formatRangeLabel(weekStart, weekEnd),
+    [weekStart, weekEnd]
   );
 
   const monthDays = useMemo(
@@ -1634,7 +1628,7 @@ export default function AdminCalendarPage() {
                 </strong>
                 {selectedSlot && (
                   <span>
-                    {selectedSlot.date} | {selectedSlot.time}
+                    {formatDateTimeDDMMYYYY(selectedSlot.date, selectedSlot.time)}
                   </span>
                 )}
               </div>
@@ -1904,7 +1898,7 @@ export default function AdminCalendarPage() {
                   {selectedAppointment.clientName}
                 </strong>
                 <span>
-                  {selectedAppointment.date} |{" "}
+                  {formatDateDDMMYYYY(selectedAppointment.date)} |{" "}
                   {normalizeTimeInput(selectedAppointment.time)}
                 </span>
               </div>
@@ -1941,7 +1935,7 @@ export default function AdminCalendarPage() {
                 </span>
               )}
               {selectedAppointment.createdAt && (
-                <span>Kreirano: {selectedAppointment.createdAt}</span>
+                <span>Kreirano: {formatSqlDateTimeDDMMYYYY(selectedAppointment.createdAt)}</span>
               )}
             </div>
 

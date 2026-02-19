@@ -12,6 +12,19 @@ import { useLanguage, type Language } from "@/lib/useLanguage";
 import { siteConfig } from "@/lib/site";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padded = `${base64String}${"=".repeat((4 - (base64String.length % 4)) % 4)}`
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+  const rawData = window.atob(padded);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -199,6 +212,10 @@ export default function HomePage() {
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [installPlatform, setInstallPlatform] = useState<"ios" | "android" | "desktop" | "other">("other");
   const [homepageNotice, setHomepageNotice] = useState("");
+  const [pushReady, setPushReady] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushMessage, setPushMessage] = useState("");
   const prefersReducedMotion = useReducedMotion();
   const year = new Date().getFullYear();
   const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -263,6 +280,43 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
+    const syncPushState = async () => {
+      const supported =
+        "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+      if (!supported) {
+        if (active) {
+          setPushReady(false);
+          setPushEnabled(false);
+        }
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (!active) {
+          return;
+        }
+        setPushReady(true);
+        setPushEnabled(Boolean(subscription) && Notification.permission === "granted");
+      } catch {
+        if (active) {
+          setPushReady(false);
+          setPushEnabled(false);
+        }
+      }
+    };
+
+    syncPushState();
+
+    return () => {
+      active = false;
+    };
+  }, [isClientLoggedIn]);
+
+  useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
@@ -319,6 +373,8 @@ export default function HomePage() {
     localStorage.removeItem("db_client_phone");
     localStorage.removeItem("db_client_email");
     setIsClientLoggedIn(false);
+    setPushEnabled(false);
+    setPushMessage("");
     handleNavClose();
   };
 
@@ -337,6 +393,90 @@ export default function HomePage() {
       await installPrompt.userChoice;
     } finally {
       setInstallPrompt(null);
+    }
+  };
+
+  const handleAcceptNotifications = async () => {
+    const supported =
+      "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+    if (!supported) {
+      setPushMessage("Notifikacije nisu podrzane na ovom uredjaju.");
+      return;
+    }
+
+    if (!isClientLoggedIn) {
+      setPushMessage("Prijavite se da biste aktivirali obavestenja.");
+      return;
+    }
+
+    if (!apiBaseUrl) {
+      setPushMessage("API nije podesen.");
+      return;
+    }
+
+    if (!vapidPublicKey) {
+      setPushMessage("VAPID kljuc nije podesen.");
+      return;
+    }
+
+    const clientToken = localStorage.getItem("db_client_token") || "";
+    if (!clientToken) {
+      setPushMessage("Nedostaje klijentski token.");
+      return;
+    }
+
+    setPushLoading(true);
+    setPushMessage("");
+
+    try {
+      let permission = Notification.permission;
+      if (permission === "default") {
+        permission = await Notification.requestPermission();
+      }
+      if (permission !== "granted") {
+        setPushEnabled(false);
+        setPushMessage("Dozvola za notifikacije nije odobrena.");
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        });
+      }
+
+      const response = await fetch(`${apiBaseUrl}/push-subscriptions.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "subscribe",
+          clientToken,
+          subscription: subscription.toJSON(),
+          userAgent: navigator.userAgent,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Ne mogu da aktiviram obavestenja.");
+      }
+
+      setPushReady(true);
+      setPushEnabled(true);
+      setPushMessage("Obavestenja su ukljucena.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Ne mogu da aktiviram obavestenja.";
+      setPushEnabled(false);
+      setPushMessage(message);
+    } finally {
+      setPushLoading(false);
     }
   };
 
@@ -584,6 +724,16 @@ export default function HomePage() {
             <a href="#studio" onClick={handleNavClose}>
               {copy.navStudio}
             </a>
+            <button
+              className="button small outline"
+              type="button"
+              onClick={handleAcceptNotifications}
+              disabled={!pushReady || pushEnabled || pushLoading}
+            >
+              {pushLoading ? "Aktiviranje..." : "Prihvati obaveštenja"}
+            </button>
+            {pushEnabled && <span>Obavestenja su ukljucena.</span>}
+            {!pushEnabled && pushMessage && <span>{pushMessage}</span>}
             {isClientLoggedIn && (
               <Link href="/moji-termini" onClick={handleNavClose}>
                 {copy.navMyAppointments}

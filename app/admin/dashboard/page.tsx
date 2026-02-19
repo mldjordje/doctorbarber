@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import AdminShell from "@/components/admin/AdminShell";
 import { fetchServices, type Service } from "@/lib/services";
+import { formatDateTimeDDMMYYYY } from "@/lib/dateTime";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -56,7 +57,7 @@ const isCancelledLike = (status?: string) => status === "cancelled" || status ==
 
 export default function AdminDashboardPage() {
   const { language } = useLanguage();
-  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-US" : "it-IT";
+  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-GB" : "it-IT";
 
   const text: Record<Language, Record<string, string>> = {
     sr: {
@@ -356,17 +357,8 @@ export default function AdminDashboardPage() {
     [locale]
   );
 
-  const formatDateTime = (date: string, time: string) => {
-    const normalizedTime = normalizeTime(time);
-    const value = new Date(`${date}T${normalizedTime || "00:00"}:00`);
-    return new Intl.DateTimeFormat(locale, {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(value);
-  };
+  const formatDateTime = (date: string, time: string) =>
+    formatDateTimeDDMMYYYY(date, normalizeTime(time));
 
   return (
     <AdminShell title={t.title} subtitle={t.subtitle}>

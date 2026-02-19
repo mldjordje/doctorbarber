@@ -3,6 +3,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { formatDateDDMMYYYY, normalizeTime24 } from "@/lib/dateTime";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
@@ -279,7 +280,8 @@ export default function ClientLoginPage() {
                   <div key={appointment.id} className="token-card">
                     <strong>{appointment.serviceName}</strong>
                     <div>
-                      {appointment.date} | {appointment.time}
+                      {formatDateDDMMYYYY(appointment.date)} |{" "}
+                      {normalizeTime24(appointment.time) || appointment.time}
                     </div>
                     {appointment.status && (
                       <span>{statusLabels[appointment.status] || appointment.status}</span>

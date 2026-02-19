@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 
 import AdminShell from "@/components/admin/AdminShell";
+import { formatSqlDateTimeDDMMYYYY } from "@/lib/dateTime";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -290,8 +291,12 @@ export default function AdminClientsPage() {
             {client.appointmentCount !== undefined && (
               <span>Broj termina: {client.appointmentCount}</span>
             )}
-            {client.lastAppointment && <span>Poslednji termin: {client.lastAppointment}</span>}
-            {client.createdAt && <span>Registracija: {client.createdAt}</span>}
+            {client.lastAppointment && (
+              <span>Poslednji termin: {formatSqlDateTimeDDMMYYYY(client.lastAppointment)}</span>
+            )}
+            {client.createdAt && (
+              <span>Registracija: {formatSqlDateTimeDDMMYYYY(client.createdAt)}</span>
+            )}
             {client.address && <span>Adresa: {client.address}</span>}
             {client.description && <span>Opis: {client.description}</span>}
             <div className="admin-actions">

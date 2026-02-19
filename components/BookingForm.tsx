@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@heroui/react";
 
 import { fetchServices, getActiveServices, services as fallbackServices, type Service } from "@/lib/services";
+import { formatWeekdayAndDate, normalizeTime24 } from "@/lib/dateTime";
 import { siteConfig } from "@/lib/site";
 import type { Language } from "@/lib/useLanguage";
 
@@ -74,19 +75,11 @@ const formatDate = (date: Date) => {
 
 const languageToLocale: Record<Language, string> = {
   sr: "sr-RS",
-  en: "en-US",
+  en: "en-GB",
   it: "it-IT",
 };
 
-const formatLongDate = (value: string, locale: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-};
+const formatLongDate = (value: string, locale: string) => formatWeekdayAndDate(value, locale);
 
 const formatMonthLabel = (date: Date, locale: string) =>
   new Intl.DateTimeFormat(locale, {
@@ -99,15 +92,7 @@ const formatWeekday = (date: Date, locale: string) =>
     weekday: "short",
   }).format(date);
 
-const formatSlotLabel = (time: string, locale: string) => {
-  const [hours, minutes] = time.split(":").map((part) => Number(part));
-  const date = new Date(2024, 0, 1, hours, minutes);
-  return new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
-};
+const formatSlotLabel = (time: string) => normalizeTime24(time) || time;
 
 const timeToMinutes = (time: string) => {
   const [hours, minutes] = time.split(":").map((part) => Number(part));
@@ -1497,7 +1482,7 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
                           window.setTimeout(scrollToSubmit, 0);
                         }}
                       >
-                        {formatSlotLabel(slot, locale)}
+                        {formatSlotLabel(slot)}
                       </Button>
                     ))}
                   </div>

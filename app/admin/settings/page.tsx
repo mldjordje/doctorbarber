@@ -12,6 +12,7 @@ type SettingsState = {
   minBookingLeadMinutes: string;
   minCancelLeadMinutes: string;
   homepageNotice: string;
+  emailNotifications: boolean;
 };
 
 type StatusState = {
@@ -38,6 +39,7 @@ export default function AdminSettingsPage() {
       homepageNotice: "Obavestenje za pocetnu stranu",
       homepageNoticeHint:
         "Kratko obavestenje koje se prikazuje odmah na ulasku na sajt.",
+      emailNotifications: "Email notifications",
       saving: "Cuvanje...",
       save: "Sacuvaj podesavanja",
     },
@@ -56,6 +58,7 @@ export default function AdminSettingsPage() {
       minCancel: "Minimum minutes before cancellation",
       homepageNotice: "Homepage notice",
       homepageNoticeHint: "Short notice shown immediately when visitors open the website.",
+      emailNotifications: "Email notifications",
       saving: "Saving...",
       save: "Save settings",
     },
@@ -74,6 +77,7 @@ export default function AdminSettingsPage() {
       minCancel: "Minuti minimi prima della cancellazione",
       homepageNotice: "Avviso in homepage",
       homepageNoticeHint: "Breve avviso mostrato subito all'apertura del sito.",
+      emailNotifications: "Email notifications",
       saving: "Salvataggio...",
       save: "Salva impostazioni",
     },
@@ -83,6 +87,7 @@ export default function AdminSettingsPage() {
     minBookingLeadMinutes: "60",
     minCancelLeadMinutes: "60",
     homepageNotice: "",
+    emailNotifications: true,
   });
   const [status, setStatus] = useState<StatusState>({ type: "idle" });
 
@@ -105,6 +110,7 @@ export default function AdminSettingsPage() {
           minBookingLeadMinutes: String(settings.minBookingLeadMinutes ?? "60"),
           minCancelLeadMinutes: String(settings.minCancelLeadMinutes ?? "60"),
           homepageNotice: String(settings.homepageNotice ?? ""),
+          emailNotifications: settings.emailNotifications !== false,
         });
       })
       .catch(() => {
@@ -119,8 +125,21 @@ export default function AdminSettingsPage() {
   }, []);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    if (name === "emailNotifications" && type === "checkbox") {
+      setFormState((prev) => ({
+        ...prev,
+        emailNotifications: checked,
+      }));
+      return;
+    }
+
+    if (name === "minBookingLeadMinutes" || name === "minCancelLeadMinutes" || name === "homepageNotice") {
+      setFormState((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -174,6 +193,7 @@ export default function AdminSettingsPage() {
           minBookingLeadMinutes: minBooking,
           minCancelLeadMinutes: minCancel,
           homepageNotice: formState.homepageNotice.trim(),
+          emailNotifications: formState.emailNotifications,
         }),
       });
       const data = await response.json();
@@ -187,6 +207,7 @@ export default function AdminSettingsPage() {
         minBookingLeadMinutes: String(settings.minBookingLeadMinutes ?? minBooking),
         minCancelLeadMinutes: String(settings.minCancelLeadMinutes ?? minCancel),
         homepageNotice: String(settings.homepageNotice ?? formState.homepageNotice),
+        emailNotifications: settings.emailNotifications !== false,
       });
       setStatus({ type: "success", message: t.saved });
     } catch (error) {
@@ -246,6 +267,16 @@ export default function AdminSettingsPage() {
                   value={formState.homepageNotice}
                   onChange={handleChange}
                   placeholder={t.homepageNoticeHint}
+                />
+              </div>
+              <div className="form-row form-row--full">
+                <label htmlFor="emailNotifications">{t.emailNotifications}</label>
+                <input
+                  id="emailNotifications"
+                  name="emailNotifications"
+                  type="checkbox"
+                  checked={formState.emailNotifications}
+                  onChange={handleChange}
                 />
               </div>
             </div>

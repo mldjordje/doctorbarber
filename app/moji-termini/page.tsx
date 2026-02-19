@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { formatDateDDMMYYYY, formatWeekdayAndDate, normalizeTime24 } from "@/lib/dateTime";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
@@ -40,27 +41,9 @@ const statusLabels: Record<string, string> = {
   no_show: "Nije dosao",
 };
 
-const formatLongDate = (value: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return new Intl.DateTimeFormat("sr-RS", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-};
+const formatLongDate = (value: string) => formatWeekdayAndDate(value, "sr-RS");
 
-const normalizeTime = (value: string) => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return "";
-  }
-  const match = trimmed.match(/^(\d{1,2}):(\d{2})/);
-  if (!match) {
-    return trimmed;
-  }
-  return `${match[1].padStart(2, "0")}:${match[2]}`;
-};
+const normalizeTime = (value: string) => normalizeTime24(value);
 
 const buildDateTime = (appointment: Appointment) => {
   const time = normalizeTime(appointment.time) || "00:00";
@@ -507,7 +490,7 @@ export default function MyAppointmentsPage() {
               Da li ste sigurni da zelite da otkazete termin za {cancelTarget.serviceName}?
             </p>
             <div className="confirm-modal__meta">
-              <span>{formatLongDate(cancelTarget.date)}</span>
+              <span>{formatDateDDMMYYYY(cancelTarget.date)}</span>
               <span>{normalizeTime(cancelTarget.time)}</span>
             </div>
             {!canCancelAppointment(cancelTarget) && (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 
 import AdminShell from "@/components/admin/AdminShell";
 import { fetchServices, services as fallbackServices, type Service } from "@/lib/services";
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY, formatSqlDateTimeDDMMYYYY } from "@/lib/dateTime";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -821,14 +822,17 @@ export default function AdminAppointmentsManager() {
               </div>
               <strong>{appointment.serviceName}</strong>
               <span>
-                {appointment.date} | {normalizeTimeInput(appointment.time)}
+                {formatDateDDMMYYYY(appointment.date)} |{" "}
+                {normalizeTimeInput(appointment.time)}
               </span>
               <div>{appointment.clientName}</div>
               <span>{appointment.phone}</span>
               {appointment.email && <span>{appointment.email}</span>}
               {appointment.notes && <span>Napomena: {appointment.notes}</span>}
               <span>Izvor: {sourceLabels[appointment.source || ""] || "Nepoznato"}</span>
-              {appointment.createdAt && <span>Kreirano: {appointment.createdAt}</span>}
+              {appointment.createdAt && (
+                <span>Kreirano: {formatSqlDateTimeDDMMYYYY(appointment.createdAt)}</span>
+              )}
               <div className="admin-actions">
                 <button
                   className="button outline"
@@ -1170,7 +1174,7 @@ export default function AdminAppointmentsManager() {
           {blocks.map((block) => (
             <div key={block.id} className="admin-card">
               <strong>
-                {block.time} ({block.duration} min)
+                {formatDateTimeDDMMYYYY(block.date, block.time)} ({block.duration} min)
               </strong>
               {block.note && <span>{block.note}</span>}
               <div className="admin-actions">

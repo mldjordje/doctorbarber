@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import AdminShell from "@/components/admin/AdminShell";
+import { formatSqlDateTimeDDMMYYYY } from "@/lib/dateTime";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -226,7 +227,9 @@ export default function AdminNotificationsPage() {
           >
             <strong>{item.type}</strong>
             <span>{item.message}</span>
-            {item.createdAt && <span>{t.created}: {item.createdAt}</span>}
+            {item.createdAt && (
+              <span>{t.created}: {formatSqlDateTimeDDMMYYYY(item.createdAt)}</span>
+            )}
             {item.relatedBookingId && (
               <span>{t.appointmentId}: {item.relatedBookingId}</span>
             )}
