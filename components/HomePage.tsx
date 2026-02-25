@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -257,26 +257,6 @@ export default function HomePage() {
     } else {
       setInstallPlatform("other");
     }
-  }, []);
-
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) {
-      return;
-    }
-
-    const register = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
-    };
-
-    if (document.readyState === "complete") {
-      register();
-      return;
-    }
-
-    window.addEventListener("load", register);
-    return () => {
-      window.removeEventListener("load", register);
-    };
   }, []);
 
   useEffect(() => {

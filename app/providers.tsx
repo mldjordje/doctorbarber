@@ -10,6 +10,20 @@ export default function Providers({
   children: React.ReactNode;
 }) {
   useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      const register = () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+      };
+      if (document.readyState === "complete") {
+        register();
+      } else {
+        window.addEventListener("load", register);
+        return () => window.removeEventListener("load", register);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
     if (elements.length === 0) {
       return;
