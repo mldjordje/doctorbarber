@@ -3,7 +3,7 @@
   "short_name": "DB Admin",
   "description": "Doctor Barber admin panel.",
   "lang": "sr",
-  "start_url": "/admin?source=pwa",
+  "start_url": "/admin/calendar?source=pwa",
   "scope": "/admin",
   "display": "standalone",
   "background_color": "#111111",
