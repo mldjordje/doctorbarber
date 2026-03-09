@@ -6,6 +6,7 @@ const options: { value: Language; label: string }[] = [
   { value: "sr", label: "SR" },
   { value: "en", label: "EN" },
   { value: "it", label: "IT" },
+  { value: "de", label: "DE" },
 ];
 
 type LanguageSwitcherProps = {

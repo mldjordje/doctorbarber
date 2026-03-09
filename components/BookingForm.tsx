@@ -77,6 +77,7 @@ const languageToLocale: Record<Language, string> = {
   sr: "sr-RS",
   en: "en-GB",
   it: "it-IT",
+  de: "de-DE",
 };
 
 const formatLongDate = (value: string, locale: string) => formatWeekdayAndDate(value, locale);
@@ -503,6 +504,62 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
         no_show: "No show",
       },
     },
+    de: {
+      loginRequired: "Anmeldung erforderlich",
+      loginRequiredDesc: "Du musst dich vor der Buchung anmelden.",
+      login: "Anmelden",
+      register: "Registrieren",
+      title: "Termin buchen",
+      subtitle: "Service, Datum und Uhrzeit wählen.",
+      loggedIn: "Angemeldet als",
+      warning: "Hinweis: du hast",
+      unpaidAppointments: "unbezahlte Termine.",
+      totalForPayment: "Gesamt offen:",
+      serviceStep: "1. Service",
+      slotStep: "2. Termin",
+      nextAppointment: "Dein nächster Termin",
+      refresh: "Aktualisieren",
+      loading: "Lädt...",
+      noAppointments: "Keine Termine gebucht.",
+      chooseService: "Service wählen",
+      serviceHint: "Verfügbare Zeiten passen sich an die Dauer des Services an.",
+      selected: "Ausgewählt",
+      choose: "Wählen",
+      continue: "Weiter",
+      chooseDateAndTime: "Datum und Uhrzeit wählen",
+      chooseDateHint: "Wähle Datum und Uhrzeit, die dir passen.",
+      pickServiceFirst: "Wähle zuerst einen Service, um den Kalender zu sehen.",
+      selectedService: "Ausgewählter Service",
+      duration: "Dauer",
+      price: "Preis",
+      vipBeforeShort: "VIP vor Öffnungszeit",
+      vipAfterShort: "VIP nach Öffnungszeit",
+      previous: "Zurück",
+      next: "Weiter",
+      availableOn: "Verfügbar",
+      noSlots: "Keine verfügbaren Zeiten für diesen Tag.",
+      note: "Notiz",
+      notePlaceholder: "Sonderwünsche, Stil, zusätzliche Details.",
+      addToCalendar: "Zum Kalender hinzufügen",
+      back: "Zurück",
+      submit: "Termin bestätigen",
+      sending: "Wird gesendet...",
+      mustLoginToBook: "Du musst angemeldet sein, um einen Termin zu buchen.",
+      selectServiceBeforeBooking: "Bitte zuerst einen Service wählen.",
+      apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
+      cannotLoadAppointments: "Termine konnten nicht geladen werden.",
+      cannotCheckAvailability: "Verfügbarkeit konnte nicht geprüft werden.",
+      submitError: "Buchungsanfrage fehlgeschlagen.",
+      bookingConfirmed: "Dein Termin wurde bestätigt.",
+      genericError: "Etwas ist schiefgelaufen.",
+      statusLabels: {
+        pending: "Ausstehend",
+        confirmed: "Bestätigt",
+        completed: "Abgeschlossen",
+        cancelled: "Storniert",
+        no_show: "Nicht erschienen",
+      },
+    },
     it: {
       loginRequired: "Accesso obbligatorio",
       loginRequiredDesc: "Devi accedere prima di prenotare.",
@@ -564,6 +621,9 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
   const minLeadMessage = (minutes: number) => {
     if (language === "en") {
       return `Appointment must be booked at least ${minutes} minutes in advance.`;
+    }
+    if (language === "de") {
+      return `Der Termin muss mindestens ${minutes} Minuten im Voraus gebucht werden.`;
     }
     if (language === "it") {
       return `L'appuntamento deve essere prenotato almeno ${minutes} minuti prima.`;

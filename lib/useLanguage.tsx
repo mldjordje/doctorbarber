@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type Language = "sr" | "en" | "it";
+export type Language = "sr" | "en" | "it" | "de";
 
 const STORAGE_KEY = "db_ui_lang";
 const DEFAULT_LANGUAGE: Language = "sr";
@@ -11,6 +11,7 @@ const languageLocales: Record<Language, string> = {
   sr: "sr-RS",
   en: "en-US",
   it: "it-IT",
+  de: "de-DE",
 };
 
 type LanguageContextValue = {
@@ -32,6 +33,10 @@ const normalizeLanguage = (value: string | null | undefined): Language | null =>
 
   if (value.startsWith("it")) {
     return "it";
+  }
+
+  if (value.startsWith("de")) {
+    return "de";
   }
 
   if (value.startsWith("sr")) {

@@ -57,7 +57,13 @@ const isCancelledLike = (status?: string) => status === "cancelled" || status ==
 
 export default function AdminDashboardPage() {
   const { language } = useLanguage();
-  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-GB" : "it-IT";
+  const localeByLanguage: Record<Language, string> = {
+    sr: "sr-RS",
+    en: "en-GB",
+    it: "it-IT",
+    de: "de-DE",
+  };
+  const locale = localeByLanguage[language];
 
   const text: Record<Language, Record<string, string>> = {
     sr: {
@@ -129,6 +135,41 @@ export default function AdminDashboardPage() {
       cancelled: "Cancelled",
       noShow: "No show",
       countSuffix: "appointments",
+    },
+    de: {
+      title: "Dashboard",
+      subtitle: "Geschäfts- und Terminübersicht an einem Ort",
+      apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
+      adminMissing: "Füge NEXT_PUBLIC_ADMIN_KEY zu .env hinzu, damit das CMS funktioniert.",
+      cannotLoad: "Dashboard-Daten konnten nicht geladen werden.",
+      genericError: "Etwas ist schiefgelaufen.",
+      refreshed: "Dashboard aktualisiert.",
+      refresh: "Aktualisieren",
+      totalRevenue: "Gesamtumsatz",
+      projectedRevenue: "Erwarteter Umsatz",
+      avgTicket: "Durchschnittswert",
+      todayAppointments: "Heutige Termine",
+      upcomingAppointments: "Bevorstehende Termine",
+      totalAppointments: "Gesamte Termine",
+      totalClients: "Gesamte Kunden",
+      activeServices: "Aktive Services",
+      unreadNotifications: "Ungelesene Benachrichtigungen",
+      todayBlocks: "Heutige Sperrzeiten",
+      statusOverview: "Terminstatus",
+      topServices: "Top-Services",
+      noData: "Keine Daten.",
+      noUpcoming: "Keine bevorstehenden Termine.",
+      quickActions: "Schnellaktionen",
+      viewCalendar: "Kalender öffnen",
+      manageAppointments: "Termine verwalten",
+      manageClients: "Kunden",
+      manageServices: "Services",
+      pending: "Ausstehend",
+      confirmed: "Bestätigt",
+      completed: "Abgeschlossen",
+      cancelled: "Storniert",
+      noShow: "Nicht erschienen",
+      countSuffix: "Termine",
     },
     it: {
       title: "Dashboard",

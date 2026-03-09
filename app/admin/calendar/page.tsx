@@ -307,7 +307,13 @@ const buildTimeSlots = (
 
 export default function AdminCalendarPage() {
   const { language } = useLanguage();
-  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-GB" : "it-IT";
+  const localeByLanguage: Record<Language, string> = {
+    sr: "sr-RS",
+    en: "en-GB",
+    it: "it-IT",
+    de: "de-DE",
+  };
+  const locale = localeByLanguage[language];
   const text: Record<Language, Record<string, string>> = {
     sr: {
       totalAppointments: "Ukupno termina",
@@ -350,6 +356,27 @@ export default function AdminCalendarPage() {
       cannotDeleteBlock: "Unable to delete block.",
       feedMissing: "Add API base URL and admin key to generate feed.",
       chooseDate: "Select date",
+    },
+    de: {
+      totalAppointments: "Gesamte Termine",
+      totalBlocks: "Gesamte Sperrzeiten",
+      apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
+      adminMissing: "Füge NEXT_PUBLIC_ADMIN_KEY zu .env hinzu, damit das CMS funktioniert.",
+      cannotLoadBlocks: "Sperrzeiten konnten nicht geladen werden.",
+      genericError: "Etwas ist schiefgelaufen.",
+      calendarRefreshed: "Kalender aktualisiert.",
+      confirmDeleteAppointment: "Möchtest du diesen Termin wirklich löschen?",
+      cannotDeleteAppointment: "Termin konnte nicht gelöscht werden.",
+      appointmentDeleted: "Termin gelöscht.",
+      cannotSaveStatus: "Status konnte nicht gespeichert werden.",
+      statusSaved: "Status gespeichert.",
+      cannotSaveBlock: "Sperrzeit konnte nicht gespeichert werden.",
+      cannotSaveAppointment: "Termin konnte nicht gespeichert werden.",
+      appointmentUpdated: "Termin aktualisiert.",
+      appointmentSaved: "Termin gespeichert.",
+      cannotDeleteBlock: "Sperrzeit konnte nicht gelöscht werden.",
+      feedMissing: "API-URL und Admin-Key hinzufügen, um den Feed zu erzeugen.",
+      chooseDate: "Datum wählen",
     },
     it: {
       totalAppointments: "Appuntamenti totali",

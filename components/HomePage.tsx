@@ -158,6 +158,47 @@ const content: Record<
     instagramButton: "Follow us",
     homepageNoticeDefault: "",
   },
+  de: {
+    menu: "Menü",
+    navBooking: "Buchung",
+    navStudio: "Studio",
+    navMyAppointments: "Meine Termine",
+    login: "Anmelden",
+    register: "Registrieren",
+    logout: "Abmelden",
+    installTitle: "Doctor Barber installieren",
+    installSubtitle: "Füge die App deinem Startbildschirm hinzu.",
+    close: "Schließen",
+    installHttpsHint: "Der Installationshinweis erscheint nur über HTTPS.",
+    bookNow: "Jetzt buchen",
+    installApp: "App installieren",
+    howTitle: "So funktioniert es",
+    howSubtitle: "Schnell, klar und ohne Warten. Buchen, bestätigen, pünktlich kommen.",
+    prepTitle: "Vorbereitung",
+    prepText: "Komme 5 Minuten früher. Der Zeitplan ist präzise.",
+    cancelTitle: "Stornierungsrichtlinie",
+    cancelText: "Eine Stornierung ist mindestens 2 Stunden vorher erforderlich.",
+    studioTitle: "Studio",
+    studioSubtitle: "Ruhige Atmosphäre und begrenzte Terminanzahl.",
+    hours: "Öffnungszeiten",
+    location: "Standort",
+    locationText: "Der Standort wird mit der Bestätigung geteilt.",
+    contact: "Kontakt",
+    contactFallback: "Kontaktdaten werden nach der Domain-Aktivierung hinzugefügt.",
+    openMaps: "In Google Maps öffnen",
+    galleryTitle: "Galerie / Atmosphäre",
+    galleryText: "Zwei Szenen aus dem Studio, die die Stimmung am besten zeigen.",
+    reviewTitle: "Bewerte uns auf Google",
+    reviewText: "Wenn dir der Service gefallen hat, hinterlasse eine kurze Bewertung.",
+    reviewBody: "Klassischer Haarschnitt, Fade und Bartservice. Deine Empfehlung zählt.",
+    reviewSeo: "Barber in Nis für Fade, klassische Schnitte und Bartpflege.",
+    reviewButton: "Auf Google bewerten",
+    instagramTitle: "Instagram",
+    instagramText: "Folge unseren neuesten Transformationen, Fade-Arbeiten und dem Studio-Alltag.",
+    instagramHandle: "@doctor__barber",
+    instagramButton: "Folge uns",
+    homepageNoticeDefault: "",
+  },
   it: {
     menu: "Menu",
     navBooking: "Prenotazione",
@@ -537,58 +578,78 @@ export default function HomePage() {
         ? { title: "Otvori Share meni", body: "U Safari klikni Share ikonicu." }
         : language === "en"
           ? { title: "Open Share menu", body: "In Safari, tap the Share icon." }
-          : { title: "Apri menu Share", body: "In Safari tocca l'icona Share." },
+          : language === "it"
+            ? { title: "Apri menu Share", body: "In Safari tocca l'icona Share." }
+            : { title: "Share-Menü öffnen", body: "Tippe in Safari auf das Share-Symbol." },
       language === "sr"
         ? { title: "Izaberi Add to Home Screen", body: "Skroluj meni i tapni Add to Home Screen." }
         : language === "en"
           ? { title: "Choose Add to Home Screen", body: "Scroll and tap Add to Home Screen." }
-          : { title: "Scegli Add to Home Screen", body: "Scorri il menu e tocca Add to Home Screen." },
+          : language === "it"
+            ? { title: "Scegli Add to Home Screen", body: "Scorri il menu e tocca Add to Home Screen." }
+            : { title: "Add to Home Screen wählen", body: "Scrolle und tippe auf Add to Home Screen." },
       language === "sr"
         ? { title: "Potvrdi instalaciju", body: "Tapni Add i aplikacija ce biti na ekranu." }
         : language === "en"
           ? { title: "Confirm install", body: "Tap Add and the app will appear on your screen." }
-          : { title: "Conferma installazione", body: "Tocca Add e l'app apparira sullo schermo." },
+          : language === "it"
+            ? { title: "Conferma installazione", body: "Tocca Add e l'app apparira sullo schermo." }
+            : { title: "Installation bestätigen", body: "Tippe auf Add, danach erscheint die App auf deinem Bildschirm." },
     ],
     android: [
       language === "sr"
         ? { title: "Otvori browser meni", body: "Klikni na tri tacke u Chrome-u." }
         : language === "en"
           ? { title: "Open browser menu", body: "Tap the three dots in Chrome." }
-          : { title: "Apri menu browser", body: "Tocca i tre puntini in Chrome." },
+          : language === "it"
+            ? { title: "Apri menu browser", body: "Tocca i tre puntini in Chrome." }
+            : { title: "Browser-Menü öffnen", body: "Tippe in Chrome auf die drei Punkte." },
       language === "sr"
         ? { title: "Izaberi Install app", body: "Opcija je Install app ili Add to Home screen." }
         : language === "en"
           ? { title: "Choose Install app", body: "Option is Install app or Add to Home screen." }
-          : { title: "Scegli Install app", body: "L'opzione e Install app o Add to Home screen." },
+          : language === "it"
+            ? { title: "Scegli Install app", body: "L'opzione e Install app o Add to Home screen." }
+            : { title: "Install app wählen", body: "Die Option heißt Install app oder Add to Home screen." },
       language === "sr"
         ? { title: "Potvrdi instalaciju", body: "Potvrdi i aplikacija je na pocetnom ekranu." }
         : language === "en"
           ? { title: "Confirm install", body: "Confirm and the app is added to home screen." }
-          : { title: "Conferma installazione", body: "Conferma e l'app sara nella schermata iniziale." },
+          : language === "it"
+            ? { title: "Conferma installazione", body: "Conferma e l'app sara nella schermata iniziale." }
+            : { title: "Installation bestätigen", body: "Bestätige und die App wird dem Startbildschirm hinzugefügt." },
     ],
     desktop: [
       language === "sr"
         ? { title: "Nadji install ikonu", body: "U Chrome/Edge klikni ikonu pored adrese." }
         : language === "en"
           ? { title: "Find install icon", body: "In Chrome/Edge click the icon near address bar." }
-          : { title: "Trova icona installazione", body: "In Chrome/Edge clicca l'icona vicino alla barra indirizzi." },
+          : language === "it"
+            ? { title: "Trova icona installazione", body: "In Chrome/Edge clicca l'icona vicino alla barra indirizzi." }
+            : { title: "Installationssymbol finden", body: "Klicke in Chrome/Edge auf das Symbol neben der Adressleiste." },
       language === "sr"
         ? { title: "Potvrdi instalaciju", body: "Izaberi Install i aplikacija se otvara kao app." }
         : language === "en"
           ? { title: "Confirm install", body: "Click Install and app opens like a desktop app." }
-          : { title: "Conferma installazione", body: "Scegli Install e l'app si apre come app desktop." },
+          : language === "it"
+            ? { title: "Conferma installazione", body: "Scegli Install e l'app si apre come app desktop." }
+            : { title: "Installation bestätigen", body: "Klicke auf Install, danach öffnet sich die App wie eine Desktop-App." },
     ],
     other: [
       language === "sr"
         ? { title: "Proveri browser meni", body: "Potrazi opciju Install app ili Add to Home screen." }
         : language === "en"
           ? { title: "Check browser menu", body: "Find Install app or Add to Home screen option." }
-          : { title: "Controlla menu browser", body: "Cerca Install app o Add to Home screen." },
+          : language === "it"
+            ? { title: "Controlla menu browser", body: "Cerca Install app o Add to Home screen." }
+            : { title: "Browser-Menü prüfen", body: "Suche nach Install app oder Add to Home screen." },
       language === "sr"
         ? { title: "Potvrdi instalaciju", body: "Potvrdi i ikonica se pojavi na ekranu." }
         : language === "en"
           ? { title: "Confirm install", body: "Confirm and icon will show on your screen." }
-          : { title: "Conferma installazione", body: "Conferma e l'icona apparira sullo schermo." },
+          : language === "it"
+            ? { title: "Conferma installazione", body: "Conferma e l'icona apparira sullo schermo." }
+            : { title: "Installation bestätigen", body: "Bestätige und das Symbol erscheint auf deinem Bildschirm." },
     ],
   };
   const steps = installSteps[installPlatform];
@@ -1142,7 +1203,6 @@ export default function HomePage() {
     </div>
   );
 }
-
 
 
 

@@ -37,7 +37,13 @@ const buildDefaultFormState = (overrides: Partial<ServiceFormState> = {}): Servi
 
 export default function AdminServicesPage() {
   const { language } = useLanguage();
-  const locale = language === "sr" ? "sr-RS" : language === "en" ? "en-US" : "it-IT";
+  const localeByLanguage: Record<Language, string> = {
+    sr: "sr-RS",
+    en: "en-US",
+    it: "it-IT",
+    de: "de-DE",
+  };
+  const locale = localeByLanguage[language];
   const text: Record<Language, Record<string, string>> = {
     sr: {
       apiMissing: "API nije podesen. Dodaj NEXT_PUBLIC_API_BASE_URL u .env.",
@@ -122,6 +128,48 @@ export default function AdminServicesPage() {
       cancel: "Cancel",
       saveChanges: "Save changes",
       saveService: "Save service",
+    },
+    de: {
+      apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
+      adminMissing: "Füge NEXT_PUBLIC_ADMIN_KEY zu .env hinzu, damit das CMS funktioniert.",
+      refreshed: "Services aktualisiert.",
+      genericError: "Etwas ist schiefgelaufen.",
+      enterNameDuration: "Servicename und Dauer eingeben.",
+      cannotSave: "Service konnte nicht gespeichert werden.",
+      updated: "Service aktualisiert.",
+      saved: "Service gespeichert.",
+      cannotChangeStatus: "Status konnte nicht geändert werden.",
+      confirmDelete: "Möchtest du diesen Service wirklich löschen?",
+      cannotDelete: "Service konnte nicht gelöscht werden.",
+      title: "Services",
+      subtitlePrefix: "Gesamtzahl Services:",
+      refresh: "Liste aktualisieren",
+      noItems: "Keine Services zum Anzeigen.",
+      duration: "Dauer:",
+      price: "Preis:",
+      description: "Beschreibung:",
+      status: "Status:",
+      inactive: "Inaktiv",
+      active: "Aktiv",
+      edit: "Bearbeiten",
+      activate: "Aktivieren",
+      deactivate: "Deaktivieren",
+      delete: "Löschen",
+      editService: "Service bearbeiten",
+      newService: "Neuer Service",
+      serviceName: "Service-Name",
+      serviceDuration: "Dauer",
+      servicePrice: "Preis",
+      serviceColor: "Terminfarbe",
+      serviceDesc: "Beschreibung",
+      serviceActive: "Aktiv",
+      vipWindow: "VIP-Termin",
+      vipNone: "Kein VIP",
+      vipBefore: "VIP vor Öffnungszeit (1h)",
+      vipAfter: "VIP nach Öffnungszeit (1h)",
+      cancel: "Abbrechen",
+      saveChanges: "Änderungen speichern",
+      saveService: "Service speichern",
     },
     it: {
       apiMissing: "API non configurata. Aggiungi NEXT_PUBLIC_API_BASE_URL in .env.",

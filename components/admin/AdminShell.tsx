@@ -99,6 +99,21 @@ export default function AdminShell({
       refresh: "Refresh",
       logout: "Logout",
     },
+    de: {
+      cmsPanel: "CMS-Panel",
+      menu: "Menü",
+      home: "Startseite",
+      book: "Termin buchen",
+      dashboard: "Dashboard",
+      appointments: "Termine",
+      calendar: "Kalender",
+      clients: "Kunden",
+      services: "Services",
+      notifications: "Benachrichtigungen",
+      settings: "Einstellungen",
+      refresh: "Aktualisieren",
+      logout: "Abmelden",
+    },
     it: {
       cmsPanel: "Pannello CMS",
       menu: "Menu",
@@ -121,21 +136,23 @@ export default function AdminShell({
       return value;
     }
 
-    const directMap: Record<string, { en: string; it: string }> = {
-      Termini: { en: "Appointments", it: "Appuntamenti" },
-      Dashboard: { en: "Dashboard", it: "Dashboard" },
-      Kalendar: { en: "Calendar", it: "Calendario" },
-      Klijenti: { en: "Clients", it: "Clienti" },
-      Usluge: { en: "Services", it: "Servizi" },
-      Notifikacije: { en: "Notifications", it: "Notifiche" },
-      Podesavanja: { en: "Settings", it: "Impostazioni" },
+    const directMap: Record<string, { en: string; it: string; de: string }> = {
+      Termini: { en: "Appointments", it: "Appuntamenti", de: "Termine" },
+      Dashboard: { en: "Dashboard", it: "Dashboard", de: "Dashboard" },
+      Kalendar: { en: "Calendar", it: "Calendario", de: "Kalender" },
+      Klijenti: { en: "Clients", it: "Clienti", de: "Kunden" },
+      Usluge: { en: "Services", it: "Servizi", de: "Services" },
+      Notifikacije: { en: "Notifications", it: "Notifiche", de: "Benachrichtigungen" },
+      Podesavanja: { en: "Settings", it: "Impostazioni", de: "Einstellungen" },
       "Upravljanje dostupnoscu termina": {
         en: "Manage appointment availability",
         it: "Gestione disponibilita appuntamenti",
+        de: "Terminverfügbarkeit verwalten",
       },
       "Upravljanje pravilima zakazivanja i otkazivanja": {
         en: "Manage booking and cancellation rules",
         it: "Gestione regole di prenotazione e cancellazione",
+        de: "Buchungs- und Stornierungsregeln verwalten",
       },
     };
 
@@ -144,12 +161,24 @@ export default function AdminShell({
     }
 
     return value
-      .replace(/^Ukupno klijenata:/, language === "en" ? "Total clients:" : "Clienti totali:")
-      .replace(/^Ukupno usluga:/, language === "en" ? "Total services:" : "Servizi totali:")
-      .replace(/^Ukupno:/, language === "en" ? "Total:" : "Totale:")
-      .replace(/Neprocitano:/, language === "en" ? "Unread:" : "Non lette:")
-      .replace(/ukupno termina/gi, language === "en" ? "total appointments" : "appuntamenti totali")
-      .replace(/ukupno blokada/gi, language === "en" ? "total blocks" : "blocchi totali");
+      .replace(
+        /^Ukupno klijenata:/,
+        language === "en" ? "Total clients:" : language === "it" ? "Clienti totali:" : "Gesamte Kunden:"
+      )
+      .replace(
+        /^Ukupno usluga:/,
+        language === "en" ? "Total services:" : language === "it" ? "Servizi totali:" : "Gesamte Services:"
+      )
+      .replace(/^Ukupno:/, language === "en" ? "Total:" : language === "it" ? "Totale:" : "Gesamt:")
+      .replace(/Neprocitano:/, language === "en" ? "Unread:" : language === "it" ? "Non lette:" : "Ungelesen:")
+      .replace(
+        /ukupno termina/gi,
+        language === "en" ? "total appointments" : language === "it" ? "appuntamenti totali" : "gesamte termine"
+      )
+      .replace(
+        /ukupno blokada/gi,
+        language === "en" ? "total blocks" : language === "it" ? "blocchi totali" : "gesamte sperrzeiten"
+      );
   };
   const localizedTitle = localizeAdminText(title) ?? title;
   const localizedSubtitle = localizeAdminText(subtitle);
@@ -251,6 +280,54 @@ export default function AdminShell({
         "Cena": "Price",
         "Status": "Status",
       },
+      de: {
+        "Osvezi listu": "Liste aktualisieren",
+        "Oznaci sve kao procitano": "Alle als gelesen markieren",
+        "Oznaci procitano": "Als gelesen markieren",
+        "Nema novih notifikacija.": "Keine neuen Benachrichtigungen.",
+        "Nema registrovanih klijenata.": "Keine registrierten Kunden.",
+        "Nema usluga za prikaz.": "Keine Services zum Anzeigen.",
+        "Nema termina za prikaz.": "Keine Termine zum Anzeigen.",
+        "Nema blokada za izabrani datum.": "Keine Sperrzeiten für das gewählte Datum.",
+        "Izmeni": "Bearbeiten",
+        "Obrisi": "Löschen",
+        "Otkazi": "Abbrechen",
+        "Otkazi izmenu": "Bearbeitung abbrechen",
+        "Sacuvaj izmene": "Änderungen speichern",
+        "Sacuvaj uslugu": "Service speichern",
+        "Nova usluga": "Neuer Service",
+        "Izmeni uslugu": "Service bearbeiten",
+        "Aktiviraj": "Aktivieren",
+        "Deaktiviraj": "Deaktivieren",
+        "Aktivna": "Aktiv",
+        "Neaktivna": "Inaktiv",
+        "Pravila za termine": "Terminregeln",
+        "Minimalno minuta pre zakazivanja": "Mindestminuten vor Buchung",
+        "Minimalno minuta pre otkazivanja": "Mindestminuten vor Stornierung",
+        "Cuvanje...": "Speichern...",
+        "Sacuvaj podesavanja": "Einstellungen speichern",
+        "Sacuvaj termin": "Termin speichern",
+        "Dodaj blokadu": "Sperrzeit hinzufügen",
+        "Izmeni blokadu": "Sperrzeit bearbeiten",
+        "Sacuvaj blokadu": "Sperrzeit speichern",
+        "Nema rezultata": "Keine Ergebnisse",
+        "Rucno": "Manuell",
+        "Na cekanju": "Ausstehend",
+        "Potvrdjen": "Bestätigt",
+        "Zavrsen": "Abgeschlossen",
+        "Otkazan": "Storniert",
+        "Nije dosao": "Nicht erschienen",
+        "Ime i prezime": "Vollständiger Name",
+        "Telefon": "Telefon",
+        "Adresa": "Adresse",
+        "Opis": "Beschreibung",
+        "Opis klijenta": "Kundennotizen",
+        "Usluga": "Service",
+        "Trajanje": "Dauer",
+        "Trajanje (min)": "Dauer (Min)",
+        "Cena": "Preis",
+        "Status": "Status",
+      },
       it: {
         "Osvezi listu": "Aggiorna elenco",
         "Oznaci sve kao procitano": "Segna tutto come letto",
@@ -315,6 +392,19 @@ export default function AdminShell({
         [/^Cena:\s*RSD\s*/i, "Price: RSD "],
         [/^Status:\s*/i, "Status: "],
         [/^Termin ID:\s*/i, "Appointment ID: "],
+      ],
+      de: [
+        [/^Ukupno:\s*/i, "Gesamt: "],
+        [/^Neprocitano:\s*/i, "Ungelesen: "],
+        [/^Broj termina:\s*/i, "Termine: "],
+        [/^Poslednji termin:\s*/i, "Letzter Termin: "],
+        [/^Registracija:\s*/i, "Registrierung: "],
+        [/^Adresa:\s*/i, "Adresse: "],
+        [/^Opis:\s*/i, "Beschreibung: "],
+        [/^Trajanje:\s*/i, "Dauer: "],
+        [/^Cena:\s*RSD\s*/i, "Preis: RSD "],
+        [/^Status:\s*/i, "Status: "],
+        [/^Termin ID:\s*/i, "Termin-ID: "],
       ],
       it: [
         [/^Ukupno:\s*/i, "Totale: "],

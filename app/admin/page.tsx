@@ -57,6 +57,18 @@ export default function AdminLoginPage() {
       loginSuccess: "You are logged in to CMS.",
       loginError: "Invalid username or password.",
     },
+    de: {
+      cmsPanel: "CMS-Panel",
+      home: "Startseite",
+      book: "Termin buchen",
+      title: "CMS-Anmeldung",
+      subtitle: "Zugriff auf Termine, Kalender und Kunden.",
+      username: "Benutzername",
+      password: "Passwort",
+      login: "Anmelden",
+      loginSuccess: "Du bist im CMS angemeldet.",
+      loginError: "Ungültiger Benutzername oder Passwort.",
+    },
     it: {
       cmsPanel: "Pannello CMS",
       home: "Home",
