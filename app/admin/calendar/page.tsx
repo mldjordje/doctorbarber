@@ -749,7 +749,12 @@ export default function AdminCalendarPage() {
       throw new Error(data?.message || "Ne mogu da preuzmem termine.");
     }
 
-    const items = Array.isArray(data.appointments) ? data.appointments : [];
+    const items = Array.isArray(data.appointments)
+      ? data.appointments.filter(
+          (appointment: Appointment) =>
+            (appointment.status || "pending").toLowerCase() !== "cancelled"
+        )
+      : [];
     items.sort((a: Appointment, b: Appointment) => a.time.localeCompare(b.time));
     return items;
   };
