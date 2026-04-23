@@ -19,6 +19,7 @@ type Client = {
   createdAt?: string;
   appointmentCount?: number;
   lastAppointment?: string;
+  blocked?: boolean;
 };
 
 type StatusState = {
@@ -55,6 +56,12 @@ export default function AdminClientsPage() {
       cancel: "Otkazi",
       saveChanges: "Sacuvaj izmene",
       pickClientInfo: "Izaberi klijenta iz liste da bi izmenio podatke.",
+      search: "Pretraga klijenata",
+      searchPlaceholder: "Upisi ime, telefon ili email",
+      blockClient: "Blokiraj",
+      unblockClient: "Odblokiraj",
+      blockedLabel: "Blokiran",
+      cannotToggleBlock: "Ne mogu da promenim status blokade.",
     },
     en: {
       apiMissing: "API is not configured. Add NEXT_PUBLIC_API_BASE_URL to .env.",
@@ -79,6 +86,12 @@ export default function AdminClientsPage() {
       cancel: "Cancel",
       saveChanges: "Save changes",
       pickClientInfo: "Select a client from the list to edit details.",
+      search: "Search clients",
+      searchPlaceholder: "Type name, phone or email",
+      blockClient: "Block",
+      unblockClient: "Unblock",
+      blockedLabel: "Blocked",
+      cannotToggleBlock: "Unable to update blocked status.",
     },
     de: {
       apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
@@ -103,6 +116,12 @@ export default function AdminClientsPage() {
       cancel: "Abbrechen",
       saveChanges: "Änderungen speichern",
       pickClientInfo: "Wähle einen Kunden aus der Liste, um Details zu bearbeiten.",
+      search: "Kunden suchen",
+      searchPlaceholder: "Name, Telefon oder E-Mail",
+      blockClient: "Sperren",
+      unblockClient: "Entsperren",
+      blockedLabel: "Gesperrt",
+      cannotToggleBlock: "Sperrstatus kann nicht geändert werden.",
     },
     it: {
       apiMissing: "API non configurata. Aggiungi NEXT_PUBLIC_API_BASE_URL in .env.",
@@ -127,6 +146,12 @@ export default function AdminClientsPage() {
       cancel: "Annulla",
       saveChanges: "Salva modifiche",
       pickClientInfo: "Seleziona un cliente dall'elenco per modificare i dati.",
+      search: "Cerca clienti",
+      searchPlaceholder: "Nome, telefono o email",
+      blockClient: "Blocca",
+      unblockClient: "Sblocca",
+      blockedLabel: "Bloccato",
+      cannotToggleBlock: "Impossibile aggiornare lo stato di blocco.",
     },
   };
   const t = text[language];
@@ -134,6 +159,7 @@ export default function AdminClientsPage() {
   const [status, setStatus] = useState<StatusState>({ type: "idle" });
   const [formStatus, setFormStatus] = useState<StatusState>({ type: "idle" });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formState, setFormState] = useState({
     name: "",
     phone: "",
@@ -189,6 +215,30 @@ export default function AdminClientsPage() {
     fetchClients();
   }, []);
 
+  const filteredClients = (() => {
+    const term = searchTerm.trim().toLowerCase().replace(/\s+/g, " ");
+    if (!term) {
+      return clients;
+    }
+
+    const normalizedPhone = term.replace(/\D+/g, "");
+    return clients.filter((client) => {
+      const name = (client.name || "").toLowerCase().replace(/\s+/g, " ").trim();
+      const email = (client.email || "").toLowerCase().trim();
+      const phone = (client.phone || "").replace(/\D+/g, "");
+
+      if (name.includes(term) || email.includes(term)) {
+        return true;
+      }
+
+      if (normalizedPhone && phone.includes(normalizedPhone)) {
+        return true;
+      }
+
+      return false;
+    });
+  })();
+
   const resetForm = () => {
     setEditingId(null);
     setFormState({
@@ -199,6 +249,51 @@ export default function AdminClientsPage() {
       description: "",
     });
     setFormStatus({ type: "idle" });
+  };
+
+  const toggleClientBlocked = async (client: Client) => {
+    if (!apiBaseUrl) {
+      setStatus({ type: "error", message: t.apiMissing });
+      return;
+    }
+
+    if (!adminKey) {
+      setStatus({ type: "error", message: t.adminMissing });
+      return;
+    }
+
+    setStatus({ type: "loading" });
+    try {
+      const nextBlocked = !Boolean(client.blocked);
+      const response = await fetch(`${apiBaseUrl}/clients.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Key": adminKey,
+        },
+        body: JSON.stringify({
+          adminAction: "set_blocked",
+          id: client.id,
+          blocked: nextBlocked,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.message || t.cannotToggleBlock);
+      }
+
+      const updated: Client | undefined = data?.client;
+      if (updated?.id) {
+        setClients((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      } else {
+        fetchClients();
+      }
+      setStatus({ type: "success" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t.genericError;
+      setStatus({ type: "error", message });
+    }
   };
 
   const handleEdit = (client: Client) => {
@@ -298,19 +393,31 @@ export default function AdminClientsPage() {
           <button className="button" type="button" onClick={fetchClients}>
             {t.refreshList}
           </button>
+          <input
+            className="input"
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder={t.searchPlaceholder}
+            aria-label={t.search}
+            style={{ maxWidth: 360 }}
+          />
           {status.type !== "idle" && status.message && (
             <div className={`form-status ${status.type}`}>{status.message}</div>
           )}
         </div>
 
-        {clients.length === 0 && status.type !== "loading" && (
+        {filteredClients.length === 0 && status.type !== "loading" && (
           <div className="admin-card">{t.noClients}</div>
         )}
 
-        {clients.map((client) => (
+        {filteredClients.map((client) => (
           <div key={client.id} className="admin-card">
             <strong>{client.name}</strong>
             <span>{client.phone}</span>
+            {client.blocked && (
+              <span className="status-pill cancelled">{t.blockedLabel}</span>
+            )}
             {client.email && <span>{client.email}</span>}
             {client.appointmentCount !== undefined && (
               <span>Broj termina: {client.appointmentCount}</span>
@@ -326,6 +433,13 @@ export default function AdminClientsPage() {
             <div className="admin-actions">
               <button className="button outline" type="button" onClick={() => handleEdit(client)}>
                 Izmeni
+              </button>
+              <button
+                className={`button outline ${client.blocked ? "is-active" : ""}`}
+                type="button"
+                onClick={() => toggleClientBlocked(client)}
+              >
+                {client.blocked ? t.unblockClient : t.blockClient}
               </button>
             </div>
           </div>

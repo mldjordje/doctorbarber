@@ -173,6 +173,8 @@ const minutesToTime = (minutes: number) => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
+const clampBlockDuration = (minutes: number) => Math.max(10, Math.round(minutes / 10) * 10);
+
 const parseDurationMinutes = (duration?: string | number) => {
   if (typeof duration === "number") {
     return duration;
@@ -444,6 +446,7 @@ export default function AdminCalendarPage() {
     date: formatDate(firstWorkingDay),
     time: "",
     duration: "20",
+    endTime: "",
     note: "",
   });
   const [appointmentForm, setAppointmentForm] = useState<AppointmentFormState>({
@@ -1112,6 +1115,7 @@ export default function AdminCalendarPage() {
       date,
       time,
       duration: prev.duration || String(slotMinutes),
+      endTime: "",
     }));
     setAppointmentForm((prev) => ({
       ...prev,
@@ -1131,6 +1135,13 @@ export default function AdminCalendarPage() {
       date: block.date,
       time: block.time,
       duration: String(block.duration),
+      endTime: (() => {
+        const start = timeToMinutes(block.time);
+        if (start === null) {
+          return "";
+        }
+        return minutesToTime(start + (block.duration || slotMinutes));
+      })(),
       note: block.note || "",
     });
   };
@@ -1143,6 +1154,7 @@ export default function AdminCalendarPage() {
       ...prev,
       time: "",
       duration: "20",
+      endTime: "",
       note: "",
     }));
   };
@@ -1294,6 +1306,13 @@ export default function AdminCalendarPage() {
     setStatus({ type: "loading" });
 
     try {
+      const startMinutes = timeToMinutes(blockForm.time);
+      const endMinutes = timeToMinutes(blockForm.endTime);
+      const durationMinutes =
+        startMinutes !== null && endMinutes !== null && endMinutes > startMinutes
+          ? clampBlockDuration(endMinutes - startMinutes)
+          : Number(blockForm.duration);
+
       const createResponse = await fetch(`${apiBaseUrl}/blocks.php`, {
         method: "POST",
         headers: {
@@ -1303,7 +1322,7 @@ export default function AdminCalendarPage() {
         body: JSON.stringify({
           date: blockForm.date,
           time: blockForm.time,
-          duration: Number(blockForm.duration),
+          duration: durationMinutes,
           note: blockForm.note.trim(),
         }),
       });
@@ -1325,7 +1344,7 @@ export default function AdminCalendarPage() {
       setEditingBlockId(null);
       setSelectedSlot(null);
       setIsSlotModalOpen(false);
-      setBlockForm((prev) => ({ ...prev, time: "", duration: "20", note: "" }));
+      setBlockForm((prev) => ({ ...prev, time: "", duration: "20", endTime: "", note: "" }));
       await refreshData(weekDateStrings);
     } catch (error) {
       const message = error instanceof Error ? error.message : t.genericError;
@@ -1877,6 +1896,17 @@ export default function AdminCalendarPage() {
                   />
                 </div>
                 <div className="form-row">
+                  <label htmlFor="endTime">Do (opciono)</label>
+                  <input
+                    id="endTime"
+                    name="endTime"
+                    className="input"
+                    type="time"
+                    value={blockForm.endTime}
+                    onChange={handleBlockChange}
+                  />
+                </div>
+                <div className="form-row">
                   <label htmlFor="duration">Trajanje (min)</label>
                   <input
                     id="duration"
@@ -1979,6 +2009,16 @@ export default function AdminCalendarPage() {
               )}
 
             <div className="calendar-appointment__actions">
+              {selectedAppointment.phone && (
+                <>
+                  <a className="button outline" href={`tel:${selectedAppointment.phone}`}>
+                    Pozovi
+                  </a>
+                  <a className="button outline" href={`sms:${selectedAppointment.phone}`}>
+                    Posalji poruku
+                  </a>
+                </>
+              )}
               <button
                 className="button outline"
                 type="button"
