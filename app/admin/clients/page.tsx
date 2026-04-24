@@ -202,7 +202,16 @@ export default function AdminClientsPage() {
       }
 
       const items = Array.isArray(data.clients) ? data.clients : [];
-      setClients(items);
+      const normalized = items.map((client: Client) => {
+        const raw = (client as unknown as { blocked?: unknown }).blocked;
+        const blocked =
+          raw === true ||
+          raw === 1 ||
+          raw === "1" ||
+          (typeof raw === "string" && raw.toLowerCase() === "true");
+        return { ...client, blocked };
+      });
+      setClients(normalized);
       setStatus({ type: "success", message: t.listRefreshed });
     } catch (error) {
       const message =
