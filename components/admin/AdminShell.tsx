@@ -22,7 +22,8 @@ type NavLabelKey =
   | "clients"
   | "services"
   | "notifications"
-  | "settings";
+  | "settings"
+  | "dugovi";
 
 type NavItem = {
   href: string;
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
   { href: "/admin/termini", key: "appointments" },
   { href: "/admin/calendar", key: "calendar" },
   { href: "/admin/clients", key: "clients" },
+  { href: "/admin/dugovi", key: "dugovi" },
   { href: "/admin/usluge", key: "services" },
   { href: "/admin/notifications", key: "notifications", badge: true },
   { href: "/admin/settings", key: "settings" },
@@ -62,6 +64,7 @@ export default function AdminShell({
       appointments: string;
       calendar: string;
       clients: string;
+      dugovi: string;
       services: string;
       notifications: string;
       settings: string;
@@ -78,6 +81,7 @@ export default function AdminShell({
       appointments: "Termini",
       calendar: "Kalendar",
       clients: "Klijenti",
+      dugovi: "Dugovi",
       services: "Usluge",
       notifications: "Notifikacije",
       settings: "Podesavanja",
@@ -93,6 +97,7 @@ export default function AdminShell({
       appointments: "Appointments",
       calendar: "Calendar",
       clients: "Clients",
+      dugovi: "Debts",
       services: "Services",
       notifications: "Notifications",
       settings: "Settings",
@@ -108,6 +113,7 @@ export default function AdminShell({
       appointments: "Termine",
       calendar: "Kalender",
       clients: "Kunden",
+      dugovi: "Schulden",
       services: "Services",
       notifications: "Benachrichtigungen",
       settings: "Einstellungen",
@@ -123,6 +129,7 @@ export default function AdminShell({
       appointments: "Appuntamenti",
       calendar: "Calendario",
       clients: "Clienti",
+      dugovi: "Debiti",
       services: "Servizi",
       notifications: "Notifiche",
       settings: "Impostazioni",
