@@ -1223,44 +1223,50 @@ h4 {
   gap: 16px;
   padding: 16px 18px;
   border-radius: 16px;
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .service-option:hover {
   transform: translateY(-2px);
-  border-color: rgba(17, 17, 17, 0.35);
+  border-color: rgba(201, 168, 76, 0.35);
+  background: rgba(201, 168, 76, 0.04);
 }
 
 .service-option.is-active {
-  border-color: rgba(17, 17, 17, 0.6);
-  background: rgba(17, 17, 17, 0.08);
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.2), 0 8px 24px rgba(201, 168, 76, 0.12);
 }
 
 .service-option.is-vip {
-  border-color: rgba(185, 145, 58, 0.78);
-  box-shadow: inset 0 0 0 1px rgba(185, 145, 58, 0.35);
+  border-color: rgba(201, 168, 76, 0.45);
   background: linear-gradient(
     145deg,
-    rgba(255, 248, 232, 0.95),
-    rgba(247, 238, 214, 0.92)
+    rgba(201, 168, 76, 0.1),
+    rgba(201, 168, 76, 0.05)
   );
 }
 
 .service-option.is-vip:hover {
-  border-color: rgba(185, 145, 58, 0.92);
+  border-color: rgba(201, 168, 76, 0.65);
+  background: linear-gradient(
+    145deg,
+    rgba(201, 168, 76, 0.14),
+    rgba(201, 168, 76, 0.08)
+  );
 }
 
 .service-option.is-vip.is-active {
-  border-color: rgba(164, 124, 39, 0.95);
-  box-shadow: inset 0 0 0 2px rgba(164, 124, 39, 0.45);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.3), 0 8px 24px rgba(201, 168, 76, 0.18);
   background: linear-gradient(
     145deg,
-    rgba(255, 243, 210, 0.98),
-    rgba(246, 229, 184, 0.95)
+    rgba(201, 168, 76, 0.22),
+    rgba(201, 168, 76, 0.12)
   );
 }
 
@@ -1276,21 +1282,30 @@ h4 {
 
 .service-info em {
   font-style: normal;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #226e49;
+  color: var(--gold-bright);
+  font-weight: 600;
 }
 
 .service-action {
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(17, 17, 17, 0.12);
-  color: var(--text);
-  font-size: 0.8rem;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  color: var(--gold-bright);
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.service-option.is-active .service-action {
+  background: rgba(201, 168, 76, 0.25);
+  border-color: rgba(201, 168, 76, 0.4);
 }
 
 .booking-empty {
