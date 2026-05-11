@@ -494,7 +494,7 @@ export default function AdminShell({
   }
 
   return (
-    <div className="page">
+    <div className="page page--admin">
       <header className={`nav nav--has-toggle nav--dropdown${isNavOpen ? " is-open" : ""}`}>
         <div className="container nav-inner">
           <div className="nav-top">

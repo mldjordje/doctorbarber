@@ -5005,3 +5005,283 @@ h4 {
   100% { transform: scale(1); }
 }
 
+/* ══════════════════════════════════════════════════
+   ADMIN THEME — restore original light theme for
+   all /admin pages. Scoped to .page--admin so the
+   public dark luxury theme is NOT affected.
+   ══════════════════════════════════════════════════ */
+
+.page--admin {
+  --bg: #f6f5f2;
+  --bg-elevated: #ffffff;
+  --bg-soft: #f0efec;
+  --text: #111111;
+  --text-muted: #5f5f5f;
+  --accent: #111111;
+  --accent-strong: #000000;
+  --border: rgba(17, 17, 17, 0.12);
+  --shadow: 0 24px 50px rgba(15, 15, 15, 0.12);
+  --shadow-soft: 0 18px 40px rgba(15, 15, 15, 0.08);
+  --gold: #111111;
+  --gold-bright: #000000;
+  --gold-dim: rgba(17, 17, 17, 0.06);
+
+  background: radial-gradient(circle at 12% 8%, rgba(0,0,0,0.05), transparent 45%),
+    radial-gradient(circle at 80% 15%, rgba(0,0,0,0.04), transparent 40%),
+    linear-gradient(140deg, #f8f7f5 0%, #efeeeb 55%, #f6f5f2 100%);
+  color: #111111;
+}
+
+/* Nav */
+.page--admin .nav {
+  background: rgba(248, 247, 245, 0.92);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.page--admin .brand-mark {
+  background: linear-gradient(150deg, rgba(17,17,17,0.07), rgba(17,17,17,0.03));
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  box-shadow: none;
+}
+
+.page--admin .brand-title span:last-child {
+  color: var(--text-muted);
+}
+
+.page--admin .nav-links a:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.page--admin .admin-link.is-active {
+  background: rgba(17, 17, 17, 0.08);
+  color: #111111;
+}
+
+.page--admin .nav-toggle__icon span {
+  background: #111111;
+}
+
+/* Inputs */
+.page--admin .input,
+.page--admin .select,
+.page--admin .textarea {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  color: #111111;
+}
+
+.page--admin .input:focus,
+.page--admin .select:focus,
+.page--admin .textarea:focus {
+  border-color: rgba(17, 17, 17, 0.45);
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+  outline: none;
+}
+
+.page--admin label {
+  color: #5f5f5f;
+}
+
+/* Buttons */
+.page--admin .button {
+  background: #111111;
+  color: #ffffff;
+  box-shadow: 0 12px 25px rgba(17, 17, 17, 0.18);
+}
+
+.page--admin .button:hover:not(:disabled) {
+  background: #222222;
+  box-shadow: 0 16px 30px rgba(17, 17, 17, 0.22);
+}
+
+.page--admin .button.outline {
+  background: transparent;
+  color: #111111;
+  border: 1.5px solid rgba(17, 17, 17, 0.3);
+  box-shadow: none;
+}
+
+.page--admin .button.outline:hover:not(:disabled) {
+  background: rgba(17, 17, 17, 0.06);
+  border-color: rgba(17, 17, 17, 0.5);
+}
+
+.page--admin .button.ghost {
+  background: transparent;
+  color: #111111;
+  box-shadow: none;
+}
+
+.page--admin .button.is-active {
+  background: #111111;
+  color: #ffffff;
+}
+
+.page--admin .button.outline.is-active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+/* Cards */
+.page--admin .admin-card,
+.page--admin .info-card,
+.page--admin .login-card {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 4px 16px rgba(17, 17, 17, 0.06);
+}
+
+/* Form status */
+.page--admin .form-status.success {
+  background: rgba(52, 168, 83, 0.1);
+  color: #1e7e34;
+  border: 1px solid rgba(52, 168, 83, 0.25);
+}
+
+.page--admin .form-status.error {
+  background: rgba(220, 53, 69, 0.08);
+  color: #b02a37;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.page--admin .form-status.loading {
+  background: rgba(17, 17, 17, 0.05);
+  color: #5f5f5f;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+}
+
+/* Calendar */
+.page--admin .calendar-day-header.is-active {
+  background: rgba(17, 17, 17, 0.08);
+  border-color: rgba(17, 17, 17, 0.35);
+  color: #111111;
+}
+
+.page--admin .calendar-slot.is-selected {
+  background: rgba(17, 17, 17, 0.1);
+}
+
+.page--admin .calendar-modal__card,
+.page--admin .confirm-modal__card {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  box-shadow: 0 24px 60px rgba(17, 17, 17, 0.15);
+}
+
+.page--admin .calendar-modal__close,
+.page--admin .confirm-modal__close {
+  background: rgba(17, 17, 17, 0.06);
+  color: #111111;
+}
+
+.page--admin .calendar-modal__tabs .button {
+  width: 100%;
+}
+
+/* Status pills */
+.page--admin .status-pill {
+  background: rgba(17, 17, 17, 0.06);
+  color: #5f5f5f;
+}
+
+.page--admin .status-pill.confirmed  { background: rgba(52, 168, 83, 0.12); color: #1e7e34; }
+.page--admin .status-pill.completed  { background: rgba(59, 130, 246, 0.12); color: #1d4ed8; }
+.page--admin .status-pill.cancelled  { background: rgba(220, 53, 69, 0.1);  color: #b02a37; }
+.page--admin .status-pill.no_show    { background: rgba(245, 158, 11, 0.12); color: #92400e; }
+.page--admin .status-pill.pending    { background: rgba(17, 17, 17, 0.06);  color: #5f5f5f; }
+
+/* Step pills (booking form step indicator in admin context) */
+.page--admin .step-pill {
+  background: rgba(17, 17, 17, 0.06);
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  color: #5f5f5f;
+}
+
+.page--admin .step-pill.is-active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+/* Slot buttons */
+.page--admin .slot-button {
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  color: #111111;
+}
+
+.page--admin .slot-button:hover:not(:disabled) {
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.page--admin .slot-button.is-active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+/* Calendar week days */
+.page--admin .calendar-week-day.is-active {
+  background: rgba(17, 17, 17, 0.06);
+  border-color: rgba(17, 17, 17, 0.35);
+}
+
+/* Language switcher */
+.page--admin .language-switcher {
+  background: rgba(17, 17, 17, 0.05);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+}
+
+.page--admin .language-switcher__button {
+  color: #5f5f5f;
+}
+
+.page--admin .language-switcher__button.is-active {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* Client search suggestions */
+.page--admin .client-suggestions {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.1);
+}
+
+.page--admin .client-suggestion {
+  color: #111111;
+}
+
+.page--admin .client-suggestion:hover,
+.page--admin .client-suggestion.is-active {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+/* Admin reschedule inline form */
+.page--admin .admin-reschedule {
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+}
+
+.page--admin .admin-reschedule__header strong {
+  color: #111111;
+}
+
+.page--admin .admin-reschedule__close {
+  border-color: rgba(17, 17, 17, 0.15);
+  color: #5f5f5f;
+}
+
+.page--admin .admin-reschedule__close:hover {
+  color: #111111;
+  border-color: rgba(17, 17, 17, 0.3);
+}
+
+/* Nav badge */
+.page--admin .nav-badge {
+  background: #e53e3e;
+  color: #ffffff;
+}
+
