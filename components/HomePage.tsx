@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Card, CardBody, Button as HeroButton } from "@heroui/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import BookingForm from "@/components/BookingForm";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 import { siteConfig } from "@/lib/site";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
@@ -247,6 +251,7 @@ export default function HomePage() {
   const copy = content[language];
   const [showLoader, setShowLoader] = useState(true);
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isNavScrolled, setIsNavScrolled] = useState(false);
   const [isClientLoggedIn, setIsClientLoggedIn] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -259,12 +264,31 @@ export default function HomePage() {
   const [pushMessage, setPushMessage] = useState("");
   const prefersReducedMotion = useReducedMotion();
   const year = new Date().getFullYear();
-  const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
-  const easeSmooth: [number, number, number, number] = [0.2, 0.9, 0.3, 1];
+
+  // GSAP refs
+  const heroRef = useRef<HTMLElement>(null);
+  const heroBgRef = useRef<HTMLDivElement>(null);
+  const bookingRef = useRef<HTMLElement>(null);
+  const howRef = useRef<HTMLElement>(null);
+  const studioRef = useRef<HTMLElement>(null);
+  const galleryRef = useRef<HTMLElement>(null);
+  const instagramRef = useRef<HTMLElement>(null);
+  const reviewRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setShowLoader(false), 1400);
+    const timeout = window.setTimeout(() => setShowLoader(false), 1600);
     return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = showLoader ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [showLoader]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsNavScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -273,120 +297,116 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = showLoader ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [showLoader]);
-
-  useEffect(() => {
-    const navigatorWithStandalone = navigator as Navigator & { standalone?: boolean };
+    const nav = navigator as Navigator & { standalone?: boolean };
     const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      Boolean(navigatorWithStandalone.standalone);
+      window.matchMedia("(display-mode: standalone)").matches || Boolean(nav.standalone);
     const ua = navigator.userAgent.toLowerCase();
-    const isIos = /iphone|ipad|ipod/.test(ua);
-    const isAndroid = /android/.test(ua);
-
     setIsInstalled(standalone);
-    if (isIos) {
-      setInstallPlatform("ios");
-    } else if (isAndroid) {
-      setInstallPlatform("android");
-    } else if (ua.includes("windows") || ua.includes("macintosh") || ua.includes("linux")) {
-      setInstallPlatform("desktop");
-    } else {
-      setInstallPlatform("other");
-    }
+    if (/iphone|ipad|ipod/.test(ua)) setInstallPlatform("ios");
+    else if (/android/.test(ua)) setInstallPlatform("android");
+    else if (ua.includes("windows") || ua.includes("macintosh") || ua.includes("linux")) setInstallPlatform("desktop");
+    else setInstallPlatform("other");
   }, []);
 
   useEffect(() => {
     let active = true;
-
     const syncPushState = async () => {
-      const supported =
-        "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
-      if (!supported) {
-        if (active) {
-          setPushReady(false);
-          setPushEnabled(false);
-        }
-        return;
-      }
-
+      const supported = "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+      if (!supported) { if (active) { setPushReady(false); setPushEnabled(false); } return; }
       try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (!active) {
-          return;
-        }
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!active) return;
         setPushReady(true);
-        setPushEnabled(Boolean(subscription) && Notification.permission === "granted");
-      } catch {
-        if (active) {
-          setPushReady(false);
-          setPushEnabled(false);
-        }
-      }
+        setPushEnabled(Boolean(sub) && Notification.permission === "granted");
+      } catch { if (active) { setPushReady(false); setPushEnabled(false); } }
     };
-
     syncPushState();
-
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [isClientLoggedIn]);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as BeforeInstallPromptEvent);
-    };
-
-    const handleAppInstalled = () => {
-      setInstallPrompt(null);
-      setIsInstalled(true);
-      setInstallModalOpen(false);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", handleAppInstalled);
-    };
+    const onBefore = (e: Event) => { e.preventDefault(); setInstallPrompt(e as BeforeInstallPromptEvent); };
+    const onInstalled = () => { setInstallPrompt(null); setIsInstalled(true); setInstallModalOpen(false); };
+    window.addEventListener("beforeinstallprompt", onBefore);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => { window.removeEventListener("beforeinstallprompt", onBefore); window.removeEventListener("appinstalled", onInstalled); };
   }, []);
 
   useEffect(() => {
-    if (!apiBaseUrl) {
-      setHomepageNotice(copy.homepageNoticeDefault);
-      return;
-    }
-
+    if (!apiBaseUrl) { setHomepageNotice(copy.homepageNoticeDefault); return; }
     let active = true;
-    fetch(`${apiBaseUrl}/settings.php`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (!active) {
-          return;
-        }
-        const settings = data?.settings ?? data ?? {};
-        const notice = typeof settings.homepageNotice === "string" ? settings.homepageNotice.trim() : "";
-        setHomepageNotice(notice);
-      })
-      .catch(() => {
-        if (active) {
-          setHomepageNotice(copy.homepageNoticeDefault);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
+    fetch(`${apiBaseUrl}/settings.php`).then((r) => r.json()).then((data) => {
+      if (!active) return;
+      const s = data?.settings ?? data ?? {};
+      setHomepageNotice(typeof s.homepageNotice === "string" ? s.homepageNotice.trim() : "");
+    }).catch(() => { if (active) setHomepageNotice(copy.homepageNoticeDefault); });
+    return () => { active = false; };
   }, [copy.homepageNoticeDefault]);
 
-  const handleNavToggle = () => setIsNavOpen((prev) => !prev);
+  // ── GSAP: parallax + scroll reveals ──
+  useEffect(() => {
+    if (prefersReducedMotion || showLoader) return;
+
+    const ctx = gsap.context(() => {
+      // Hero parallax
+      if (heroBgRef.current && heroRef.current) {
+        gsap.to(heroBgRef.current, {
+          yPercent: 28,
+          ease: "none",
+          scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
+        });
+      }
+
+      // Scroll-reveal utility
+      const revealAll = (sectionRef: React.RefObject<HTMLElement | null>) => {
+        if (!sectionRef.current) return;
+        const els = sectionRef.current.querySelectorAll<HTMLElement>(".lux-reveal, .lux-reveal > *");
+        gsap.fromTo(els,
+          { opacity: 0, y: 56 },
+          {
+            opacity: 1, y: 0,
+            duration: 0.85, ease: "power3.out", stagger: 0.1,
+            scrollTrigger: { trigger: sectionRef.current, start: "top 84%", toggleActions: "play none none none" },
+          }
+        );
+      };
+
+      [bookingRef, howRef, studioRef, galleryRef, instagramRef, reviewRef].forEach(revealAll);
+
+      // Gold line animation per section
+      const sectionRefs = [bookingRef, howRef, studioRef, galleryRef, instagramRef, reviewRef];
+      sectionRefs.forEach((ref) => {
+        if (!ref.current) return;
+        const line = ref.current.querySelector<HTMLElement>(".lux-line");
+        if (!line) return;
+        gsap.fromTo(line,
+          { scaleX: 0, transformOrigin: "left center" },
+          {
+            scaleX: 1, duration: 1.2, ease: "power3.out",
+            scrollTrigger: { trigger: line, start: "top 88%", toggleActions: "play none none none" },
+          }
+        );
+      });
+
+      // Gallery wipe reveal
+      if (galleryRef.current) {
+        galleryRef.current.querySelectorAll<HTMLElement>(".gallery-wipe").forEach((wipe) => {
+          gsap.fromTo(wipe,
+            { scaleX: 1, transformOrigin: "left center" },
+            {
+              scaleX: 0, duration: 1.2, ease: "power3.inOut",
+              scrollTrigger: { trigger: wipe.closest(".lux-gallery__item"), start: "top 80%", toggleActions: "play none none none" },
+            }
+          );
+        });
+      }
+    });
+
+    return () => ctx.revert();
+  }, [prefersReducedMotion, showLoader]);
+
+  const handleNavToggle = () => setIsNavOpen((p) => !p);
   const handleNavClose = () => setIsNavOpen(false);
   const handleClientLogout = () => {
     localStorage.removeItem("db_client_token");
@@ -399,372 +419,160 @@ export default function HomePage() {
     handleNavClose();
   };
 
-  const handleInstallModalClose = () => {
-    setInstallModalOpen(false);
-  };
-
   const handleInstallClick = async () => {
-    if (!installPrompt) {
-      setInstallModalOpen(true);
-      return;
-    }
-
-    try {
-      await installPrompt.prompt();
-      await installPrompt.userChoice;
-    } finally {
-      setInstallPrompt(null);
-    }
+    if (!installPrompt) { setInstallModalOpen(true); return; }
+    try { await installPrompt.prompt(); await installPrompt.userChoice; } finally { setInstallPrompt(null); }
   };
 
   const handleAcceptNotifications = async () => {
-    const supported =
-      "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
-    if (!supported) {
-      setPushMessage("Notifikacije nisu podrzane na ovom uredjaju.");
-      return;
-    }
-
-    if (!isClientLoggedIn) {
-      setPushMessage("Prijavite se da biste aktivirali obavestenja.");
-      return;
-    }
-
-    if (!apiBaseUrl) {
-      setPushMessage("API nije podesen.");
-      return;
-    }
-
-    if (!vapidPublicKey) {
-      setPushMessage("VAPID kljuc nije podesen.");
-      return;
-    }
-
+    const supported = "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+    if (!supported) { setPushMessage("Notifikacije nisu podrzane na ovom uredjaju."); return; }
+    if (!isClientLoggedIn) { setPushMessage("Prijavite se da biste aktivirali obavestenja."); return; }
+    if (!apiBaseUrl) { setPushMessage("API nije podesen."); return; }
+    if (!vapidPublicKey) { setPushMessage("VAPID kljuc nije podesen."); return; }
     const clientToken = localStorage.getItem("db_client_token") || "";
-    if (!clientToken) {
-      setPushMessage("Nedostaje klijentski token.");
-      return;
-    }
-
+    if (!clientToken) { setPushMessage("Nedostaje klijentski token."); return; }
     setPushLoading(true);
     setPushMessage("");
-
     try {
       let permission = Notification.permission;
-      if (permission === "default") {
-        permission = await Notification.requestPermission();
-      }
-      if (permission !== "granted") {
-        setPushEnabled(false);
-        setPushMessage("Dozvola za notifikacije nije odobrena.");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
-
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        });
-      }
-
-      const response = await fetch(`${apiBaseUrl}/push-subscriptions.php`, {
+      if (permission === "default") permission = await Notification.requestPermission();
+      if (permission !== "granted") { setPushEnabled(false); setPushMessage("Dozvola za notifikacije nije odobrena."); return; }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) });
+      const res = await fetch(`${apiBaseUrl}/push-subscriptions.php`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "subscribe",
-          clientToken,
-          subscription: subscription.toJSON(),
-          userAgent: navigator.userAgent,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "subscribe", clientToken, subscription: sub.toJSON(), userAgent: navigator.userAgent }),
       });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Ne mogu da aktiviram obavestenja.");
-      }
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Ne mogu da aktiviram obavestenja.");
       setPushReady(true);
       setPushEnabled(true);
       setPushMessage("Obavestenja su ukljucena.");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Ne mogu da aktiviram obavestenja.";
+    } catch (err) {
       setPushEnabled(false);
-      setPushMessage(message);
+      setPushMessage(err instanceof Error ? err.message : "Ne mogu da aktiviram obavestenja.");
     } finally {
       setPushLoading(false);
     }
   };
 
-  const sectionVariants = {
-    hidden: {
-      opacity: 0,
-      y: prefersReducedMotion ? 0 : 26,
-      scale: prefersReducedMotion ? 1 : 0.98,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { duration: 0.8, ease: easeOut },
-    },
-  };
-
-  const staggerVariants = {
-    hidden: {},
-    visible: {
-      transition: prefersReducedMotion
-        ? {}
-        : { staggerChildren: 0.12, delayChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: prefersReducedMotion ? 0 : 16,
-      scale: prefersReducedMotion ? 1 : 0.98,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { duration: 0.55, ease: easeOut },
-    },
-  };
-
-  const cardVariants = {
-    hidden: {
-      opacity: 0,
-      y: prefersReducedMotion ? 0 : 20,
-      scale: prefersReducedMotion ? 1 : 0.96,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { duration: 0.7, ease: easeOut },
-    },
-  };
-
-  const heroBgVariants = {
-    hidden: { opacity: 0, scale: prefersReducedMotion ? 1 : 1.06 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: prefersReducedMotion
-        ? { duration: 0 }
-        : { duration: 1.1, ease: easeSmooth },
-    },
-  };
-
-  const cardHover = prefersReducedMotion ? {} : { y: -8, scale: 1.02 };
-  const cardTap = prefersReducedMotion ? {} : { scale: 0.98 };
   const showInstallButton = !isInstalled;
+
   const installSteps = {
     ios: [
-      language === "sr"
-        ? { title: "Otvori Share meni", body: "U Safari klikni Share ikonicu." }
-        : language === "en"
-          ? { title: "Open Share menu", body: "In Safari, tap the Share icon." }
-          : language === "it"
-            ? { title: "Apri menu Share", body: "In Safari tocca l'icona Share." }
-            : { title: "Share-Menü öffnen", body: "Tippe in Safari auf das Share-Symbol." },
-      language === "sr"
-        ? { title: "Izaberi Add to Home Screen", body: "Skroluj meni i tapni Add to Home Screen." }
-        : language === "en"
-          ? { title: "Choose Add to Home Screen", body: "Scroll and tap Add to Home Screen." }
-          : language === "it"
-            ? { title: "Scegli Add to Home Screen", body: "Scorri il menu e tocca Add to Home Screen." }
-            : { title: "Add to Home Screen wählen", body: "Scrolle und tippe auf Add to Home Screen." },
-      language === "sr"
-        ? { title: "Potvrdi instalaciju", body: "Tapni Add i aplikacija ce biti na ekranu." }
-        : language === "en"
-          ? { title: "Confirm install", body: "Tap Add and the app will appear on your screen." }
-          : language === "it"
-            ? { title: "Conferma installazione", body: "Tocca Add e l'app apparira sullo schermo." }
-            : { title: "Installation bestätigen", body: "Tippe auf Add, danach erscheint die App auf deinem Bildschirm." },
+      language === "sr" ? { title: "Otvori Share meni", body: "U Safari klikni Share ikonicu." } : language === "en" ? { title: "Open Share menu", body: "In Safari, tap the Share icon." } : language === "it" ? { title: "Apri menu Share", body: "In Safari tocca l'icona Share." } : { title: "Share-Menü öffnen", body: "Tippe in Safari auf das Share-Symbol." },
+      language === "sr" ? { title: "Izaberi Add to Home Screen", body: "Skroluj meni i tapni Add to Home Screen." } : language === "en" ? { title: "Choose Add to Home Screen", body: "Scroll and tap Add to Home Screen." } : language === "it" ? { title: "Scegli Add to Home Screen", body: "Scorri il menu e tocca Add to Home Screen." } : { title: "Add to Home Screen wählen", body: "Scrolle und tippe auf Add to Home Screen." },
+      language === "sr" ? { title: "Potvrdi instalaciju", body: "Tapni Add i aplikacija ce biti na ekranu." } : language === "en" ? { title: "Confirm install", body: "Tap Add and the app will appear on your screen." } : language === "it" ? { title: "Conferma installazione", body: "Tocca Add e l'app apparira sullo schermo." } : { title: "Installation bestätigen", body: "Tippe auf Add, danach erscheint die App auf deinem Bildschirm." },
     ],
     android: [
-      language === "sr"
-        ? { title: "Otvori browser meni", body: "Klikni na tri tacke u Chrome-u." }
-        : language === "en"
-          ? { title: "Open browser menu", body: "Tap the three dots in Chrome." }
-          : language === "it"
-            ? { title: "Apri menu browser", body: "Tocca i tre puntini in Chrome." }
-            : { title: "Browser-Menü öffnen", body: "Tippe in Chrome auf die drei Punkte." },
-      language === "sr"
-        ? { title: "Izaberi Install app", body: "Opcija je Install app ili Add to Home screen." }
-        : language === "en"
-          ? { title: "Choose Install app", body: "Option is Install app or Add to Home screen." }
-          : language === "it"
-            ? { title: "Scegli Install app", body: "L'opzione e Install app o Add to Home screen." }
-            : { title: "Install app wählen", body: "Die Option heißt Install app oder Add to Home screen." },
-      language === "sr"
-        ? { title: "Potvrdi instalaciju", body: "Potvrdi i aplikacija je na pocetnom ekranu." }
-        : language === "en"
-          ? { title: "Confirm install", body: "Confirm and the app is added to home screen." }
-          : language === "it"
-            ? { title: "Conferma installazione", body: "Conferma e l'app sara nella schermata iniziale." }
-            : { title: "Installation bestätigen", body: "Bestätige und die App wird dem Startbildschirm hinzugefügt." },
+      language === "sr" ? { title: "Otvori browser meni", body: "Klikni na tri tacke u Chrome-u." } : language === "en" ? { title: "Open browser menu", body: "Tap the three dots in Chrome." } : language === "it" ? { title: "Apri menu browser", body: "Tocca i tre puntini in Chrome." } : { title: "Browser-Menü öffnen", body: "Tippe in Chrome auf die drei Punkte." },
+      language === "sr" ? { title: "Izaberi Install app", body: "Opcija je Install app ili Add to Home screen." } : language === "en" ? { title: "Choose Install app", body: "Option is Install app or Add to Home screen." } : language === "it" ? { title: "Scegli Install app", body: "L'opzione e Install app o Add to Home screen." } : { title: "Install app wählen", body: "Die Option heißt Install app oder Add to Home screen." },
+      language === "sr" ? { title: "Potvrdi instalaciju", body: "Potvrdi i aplikacija je na pocetnom ekranu." } : language === "en" ? { title: "Confirm install", body: "Confirm and the app is added to home screen." } : language === "it" ? { title: "Conferma installazione", body: "Conferma e l'app sara nella schermata iniziale." } : { title: "Installation bestätigen", body: "Bestätige und die App wird dem Startbildschirm hinzugefügt." },
     ],
     desktop: [
-      language === "sr"
-        ? { title: "Nadji install ikonu", body: "U Chrome/Edge klikni ikonu pored adrese." }
-        : language === "en"
-          ? { title: "Find install icon", body: "In Chrome/Edge click the icon near address bar." }
-          : language === "it"
-            ? { title: "Trova icona installazione", body: "In Chrome/Edge clicca l'icona vicino alla barra indirizzi." }
-            : { title: "Installationssymbol finden", body: "Klicke in Chrome/Edge auf das Symbol neben der Adressleiste." },
-      language === "sr"
-        ? { title: "Potvrdi instalaciju", body: "Izaberi Install i aplikacija se otvara kao app." }
-        : language === "en"
-          ? { title: "Confirm install", body: "Click Install and app opens like a desktop app." }
-          : language === "it"
-            ? { title: "Conferma installazione", body: "Scegli Install e l'app si apre come app desktop." }
-            : { title: "Installation bestätigen", body: "Klicke auf Install, danach öffnet sich die App wie eine Desktop-App." },
+      language === "sr" ? { title: "Nadji install ikonu", body: "U Chrome/Edge klikni ikonu pored adrese." } : language === "en" ? { title: "Find install icon", body: "In Chrome/Edge click the icon near address bar." } : language === "it" ? { title: "Trova icona installazione", body: "In Chrome/Edge clicca l'icona vicino alla barra indirizzi." } : { title: "Installationssymbol finden", body: "Klicke in Chrome/Edge auf das Symbol neben der Adressleiste." },
+      language === "sr" ? { title: "Potvrdi instalaciju", body: "Izaberi Install i aplikacija se otvara kao app." } : language === "en" ? { title: "Confirm install", body: "Click Install and app opens like a desktop app." } : language === "it" ? { title: "Conferma installazione", body: "Scegli Install e l'app si apre come app desktop." } : { title: "Installation bestätigen", body: "Klicke auf Install, danach öffnet sich die App wie eine Desktop-App." },
     ],
     other: [
-      language === "sr"
-        ? { title: "Proveri browser meni", body: "Potrazi opciju Install app ili Add to Home screen." }
-        : language === "en"
-          ? { title: "Check browser menu", body: "Find Install app or Add to Home screen option." }
-          : language === "it"
-            ? { title: "Controlla menu browser", body: "Cerca Install app o Add to Home screen." }
-            : { title: "Browser-Menü prüfen", body: "Suche nach Install app oder Add to Home screen." },
-      language === "sr"
-        ? { title: "Potvrdi instalaciju", body: "Potvrdi i ikonica se pojavi na ekranu." }
-        : language === "en"
-          ? { title: "Confirm install", body: "Confirm and icon will show on your screen." }
-          : language === "it"
-            ? { title: "Conferma installazione", body: "Conferma e l'icona apparira sullo schermo." }
-            : { title: "Installation bestätigen", body: "Bestätige und das Symbol erscheint auf deinem Bildschirm." },
+      language === "sr" ? { title: "Proveri browser meni", body: "Potrazi opciju Install app ili Add to Home screen." } : language === "en" ? { title: "Check browser menu", body: "Find Install app or Add to Home screen option." } : language === "it" ? { title: "Controlla menu browser", body: "Cerca Install app o Add to Home screen." } : { title: "Browser-Menü prüfen", body: "Suche nach Install app oder Add to Home screen." },
+      language === "sr" ? { title: "Potvrdi instalaciju", body: "Potvrdi i ikonica se pojavi na ekranu." } : language === "en" ? { title: "Confirm install", body: "Confirm and icon will show on your screen." } : language === "it" ? { title: "Conferma installazione", body: "Conferma e l'icona apparira sullo schermo." } : { title: "Installation bestätigen", body: "Bestätige und das Symbol erscheint auf deinem Bildschirm." },
     ],
   };
   const steps = installSteps[installPlatform];
 
   return (
-    <div className="page">
+    <div className="lux-page">
+
+      {/* ── Cinematic Preloader ── */}
       <AnimatePresence>
         {showLoader && (
           <motion.div
-            className="preloader"
-            initial={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              transition: prefersReducedMotion
-                ? { duration: 0 }
-                : { duration: 0.6, ease: "easeInOut" },
-            }}
+            className="lux-preloader"
+            initial={{ y: 0 }}
+            exit={
+              prefersReducedMotion
+                ? { opacity: 0 }
+                : { y: "-100%", transition: { duration: 0.95, ease: [0.76, 0, 0.24, 1] } }
+            }
           >
-            <div className="preloader-glow" aria-hidden="true" />
+            <div className="lux-preloader__noise" aria-hidden="true" />
+            <div className="lux-preloader__glow" aria-hidden="true" />
             <motion.div
-              className="preloader-card"
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                ...(prefersReducedMotion
-                  ? {}
-                  : {
-                      boxShadow: [
-                        "0 0 0 rgba(0, 0, 0, 0)",
-                        "0 20px 60px rgba(0, 0, 0, 0.35)",
-                        "0 12px 40px rgba(0, 0, 0, 0.28)",
-                      ],
-                    }),
-              }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { duration: 0.9, ease: easeSmooth }
-              }
+              className="lux-preloader__body"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="preloader-brand">
-                <div className="preloader-mark">
-                  <Image src="/logo.png" alt="Doctor Barber" width={42} height={42} />
-                </div>
-                <div className="preloader-title">
-                  <span>Doctor Barber</span>
-                  <span>Barber Studio</span>
-                </div>
-              </div>
-              <div className="preloader-bars" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
               <motion.div
-                className="preloader-pulse"
-                animate={
-                  prefersReducedMotion ? { opacity: 1 } : { opacity: [0.3, 1, 0.5] }
-                }
-                transition={
-                  prefersReducedMotion
-                    ? { duration: 0 }
-                    : { duration: 1.1, repeat: Infinity, ease: "easeInOut" }
-                }
-              />
+                className="lux-preloader__mark"
+                initial={{ scale: 0.7, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Image src="/logo.png" alt="Doctor Barber" width={46} height={46} />
+              </motion.div>
+              <motion.div
+                className="lux-preloader__title"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, delay: 0.45 }}
+              >
+                <span>Doctor Barber</span>
+                <span>Barber Studio</span>
+              </motion.div>
+              <motion.div
+                className="lux-preloader__dots"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.7 }}
+                aria-hidden="true"
+              >
+                <span /><span /><span />
+              </motion.div>
             </motion.div>
+            <motion.div
+              className="lux-preloader__progress"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.4, delay: 0.1, ease: "linear" }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <header className={`nav nav--has-toggle${isNavOpen ? " is-open" : ""}`}>
-        <div className="container nav-inner">
-          <div className="nav-top">
-            <div className="brand">
-              <div className="brand-mark">
-                <Image
-                  src="/logo.png"
-                  alt="Doctor Barber"
-                  width={36}
-                  height={36}
-                  priority
-                />
+      {/* ── Navigation ── */}
+      <header className={`lux-nav${isNavOpen ? " is-open" : ""}${isNavScrolled ? " is-scrolled" : ""}`}>
+        <div className="container lux-nav__inner">
+          <div className="lux-nav__top">
+            <div className="lux-brand">
+              <div className="lux-brand__mark">
+                <Image src="/logo.png" alt="Doctor Barber" width={34} height={34} priority />
               </div>
-              <div className="brand-title">
+              <div className="lux-brand__title">
                 <span>Doctor Barber</span>
                 <span>Barber Studio</span>
               </div>
             </div>
             <button
-              className="nav-toggle"
+              className="lux-nav__toggle"
               type="button"
               aria-expanded={isNavOpen}
-              aria-controls="primary-navigation"
+              aria-controls="lux-primary-nav"
               onClick={handleNavToggle}
             >
-              <span className="nav-toggle__label">{copy.menu}</span>
-              <span className="nav-toggle__icon" aria-hidden="true">
-                <span />
-                <span />
-                <span />
+              <span className="lux-nav__toggle-label">{copy.menu}</span>
+              <span className="lux-nav__toggle-icon" aria-hidden="true">
+                <span /><span /><span />
               </span>
             </button>
           </div>
-          <nav
-            id="primary-navigation"
-            className={`nav-links${isNavOpen ? " is-open" : ""}`}
-          >
+          <nav id="lux-primary-nav" className={`lux-nav__links${isNavOpen ? " is-open" : ""}`}>
             <LanguageSwitcher compact />
-            <a href="#booking" onClick={handleNavClose}>
-              {copy.navBooking}
-            </a>
-            <a href="#studio" onClick={handleNavClose}>
-              {copy.navStudio}
-            </a>
+            <a href="#booking" onClick={handleNavClose}>{copy.navBooking}</a>
+            <a href="#studio" onClick={handleNavClose}>{copy.navStudio}</a>
             <button
               className="button small outline"
               type="button"
@@ -773,59 +581,41 @@ export default function HomePage() {
             >
               {pushLoading ? "Aktiviranje..." : "Prihvati obaveštenja"}
             </button>
-            {pushEnabled && <span>Obavestenja su ukljucena.</span>}
-            {!pushEnabled && pushMessage && <span>{pushMessage}</span>}
+            {pushEnabled && <span className="lux-nav__msg">Obavestenja su ukljucena.</span>}
+            {!pushEnabled && pushMessage && <span className="lux-nav__msg">{pushMessage}</span>}
             {isClientLoggedIn && (
-              <Link href="/moji-termini" onClick={handleNavClose}>
-                {copy.navMyAppointments}
-              </Link>
+              <Link href="/moji-termini" onClick={handleNavClose}>{copy.navMyAppointments}</Link>
             )}
             {!isClientLoggedIn && (
-              <Link href="/login" onClick={handleNavClose}>
-                {copy.login}
-              </Link>
+              <Link href="/login" onClick={handleNavClose}>{copy.login}</Link>
             )}
             {!isClientLoggedIn && (
-              <Link
-                className="button small outline"
-                href="/register"
-                onClick={handleNavClose}
-              >
-                {copy.register}
-              </Link>
+              <Link className="button small outline" href="/register" onClick={handleNavClose}>{copy.register}</Link>
             )}
             {isClientLoggedIn && (
-              <button className="button small ghost" type="button" onClick={handleClientLogout}>
-                {copy.logout}
-              </button>
+              <button className="button small ghost" type="button" onClick={handleClientLogout}>{copy.logout}</button>
             )}
           </nav>
         </div>
       </header>
 
+      {/* ── Install Modal ── */}
       {installModalOpen && (
         <div className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="install-title">
-          <div className="confirm-modal__backdrop" onClick={handleInstallModalClose} />
+          <div className="confirm-modal__backdrop" onClick={() => setInstallModalOpen(false)} />
           <div className="confirm-modal__card install-modal__card">
             <div className="confirm-modal__header">
               <div>
                 <h3 id="install-title">{copy.installTitle}</h3>
                 <p className="install-modal__subtitle">{copy.installSubtitle}</p>
               </div>
-              <button
-                className="confirm-modal__close"
-                type="button"
-                onClick={handleInstallModalClose}
-                aria-label={copy.close}
-              >
-                ×
-              </button>
+              <button className="confirm-modal__close" type="button" onClick={() => setInstallModalOpen(false)} aria-label={copy.close}>×</button>
             </div>
             <div className="install-modal__body">
               <div className="install-steps">
-                {steps.map((step, index) => (
+                {steps.map((step, idx) => (
                   <div key={step.title} className="install-step">
-                    <div className="install-step__index">{index + 1}</div>
+                    <div className="install-step__index">{idx + 1}</div>
                     <div className="install-step__content">
                       <div className="install-step__title">{step.title}</div>
                       <div className="install-step__desc">{step.body}</div>
@@ -833,29 +623,26 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <p className="install-modal__hint">
-                {copy.installHttpsHint}
-              </p>
+              <p className="install-modal__hint">{copy.installHttpsHint}</p>
             </div>
             <div className="confirm-modal__actions">
-              <button className="button ghost" type="button" onClick={handleInstallModalClose}>
-                {copy.close}
-              </button>
+              <button className="button ghost" type="button" onClick={() => setInstallModalOpen(false)}>{copy.close}</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── Site Notice ── */}
       {homepageNotice && (
         <motion.div
-          className="site-notice-wrap"
-          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
+          className="lux-notice-wrap"
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: easeOut }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }}
         >
           <div className="container">
-            <div className="site-notice" role="status" aria-live="polite">
-              <span className="site-notice__dot" aria-hidden="true" />
+            <div className="lux-notice" role="status" aria-live="polite">
+              <span className="lux-notice__dot" aria-hidden="true" />
               <p>{homepageNotice}</p>
             </div>
           </div>
@@ -863,191 +650,173 @@ export default function HomePage() {
       )}
 
       <main>
-        <motion.section
-          className="hero-minimal"
-          initial="hidden"
-          animate="visible"
-          variants={sectionVariants}
-        >
-          <motion.div className="hero-minimal__bg" variants={heroBgVariants}>
+        {/* ── Hero ── */}
+        <section ref={heroRef} className="lux-hero">
+          <div ref={heroBgRef} className="lux-hero__bg">
             <Image
               src="/newhero.jpg"
               alt="Doctor Barber studio"
               fill
               priority
               sizes="100vw"
+              style={{ objectFit: "cover" }}
             />
-          </motion.div>
-          <div className="hero-minimal__glow" aria-hidden="true" />
-          <div className="hero-minimal__grain" aria-hidden="true" />
-          <div className="container hero-minimal__inner">
-            <motion.div className="hero-actions hero-actions--stack" variants={staggerVariants}>
-              <motion.div variants={itemVariants}>
-                <a className="button hero-primary" href="#booking">
-                  {copy.bookNow}
-                </a>
-              </motion.div>
-              {showInstallButton && (
-                <motion.div variants={itemVariants}>
-                  <button
-                    className="button outline hero-secondary"
-                    type="button"
-                    onClick={handleInstallClick}
-                  >
-                    {copy.installApp}
-                  </button>
-                </motion.div>
-              )}
-              {!isClientLoggedIn && (
-                <motion.div variants={itemVariants}>
-                  <Link className="button ghost hero-secondary" href="/login">
-                    {copy.login}
-                  </Link>
-                </motion.div>
-              )}
-              {!isClientLoggedIn && (
-                <motion.div variants={itemVariants}>
-                  <Link className="button outline hero-secondary" href="/register">
-                    {copy.register}
-                  </Link>
-                </motion.div>
-              )}
-              {isClientLoggedIn && (
-                <motion.div variants={itemVariants}>
-                  <Link className="button ghost hero-secondary" href="/moji-termini">
-                    {copy.navMyAppointments}
-                  </Link>
-                </motion.div>
-              )}
-              {isClientLoggedIn && (
-                <motion.div variants={itemVariants}>
-                  <button
-                    className="button outline hero-secondary"
-                    type="button"
-                    onClick={handleClientLogout}
-                  >
-                    {copy.logout}
-                  </button>
-                </motion.div>
-              )}
-            </motion.div>
           </div>
-        </motion.section>
+          <div className="lux-hero__overlay" aria-hidden="true" />
+          <div className="lux-hero__noise" aria-hidden="true" />
 
-        <motion.section
-          id="booking"
-          className="section booking-stage"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          variants={sectionVariants}
-        >
-          <div className="container">
+          {/* Animated particles / orbs */}
+          <div className="lux-hero__particles" aria-hidden="true">
+            {[...Array(12)].map((_, i) => (
+              <span key={i} className={`lux-particle lux-particle--${i + 1}`} />
+            ))}
+          </div>
+
+          {/* Gold shimmer sweep */}
+          <div className="lux-hero__shimmer" aria-hidden="true" />
+
+          {/* Corner vignette accent lines */}
+          <div className="lux-hero__corner lux-hero__corner--tl" aria-hidden="true" />
+          <div className="lux-hero__corner lux-hero__corner--br" aria-hidden="true" />
+
+          {/* Radial glow behind text */}
+          <div className="lux-hero__glow" aria-hidden="true" />
+
+          <div className="container lux-hero__inner">
             <motion.div
-              className="booking-stage__frame"
-              variants={cardVariants}
-              whileHover={cardHover}
-              whileTap={cardTap}
+              className="lux-hero__eyebrow"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.7, delay: 1.85 }}
             >
-              <BookingForm language={language} />
+              Barber Studio · Niš
+            </motion.div>
+
+            <motion.h1
+              className="lux-hero__heading"
+              initial={{ opacity: 0, y: 48 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.1, delay: 2.05, ease: [0.16, 1, 0.3, 1] }}
+            >
+              Doctor<br />Barber
+            </motion.h1>
+
+            <motion.p
+              className="lux-hero__sub"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay: 2.35 }}
+            >
+              {copy.howSubtitle}
+            </motion.p>
+
+            <motion.div
+              className="lux-hero__actions"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.8, delay: 2.6 }}
+            >
+              <a className="lux-btn lux-btn--gold" href="#booking">{copy.bookNow}</a>
+              {showInstallButton && (
+                <button className="lux-btn lux-btn--glass" type="button" onClick={handleInstallClick}>
+                  {copy.installApp}
+                </button>
+              )}
+              {!isClientLoggedIn && (
+                <Link className="lux-btn lux-btn--glass" href="/login">{copy.login}</Link>
+              )}
+              {!isClientLoggedIn && (
+                <Link className="lux-btn lux-btn--outline" href="/register">{copy.register}</Link>
+              )}
+              {isClientLoggedIn && (
+                <Link className="lux-btn lux-btn--glass" href="/moji-termini">{copy.navMyAppointments}</Link>
+              )}
+              {isClientLoggedIn && (
+                <button className="lux-btn lux-btn--glass" type="button" onClick={handleClientLogout}>{copy.logout}</button>
+              )}
             </motion.div>
           </div>
-        </motion.section>
 
-        <motion.section
-          className="section details"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          variants={sectionVariants}
-        >
+          <div className="lux-hero__scroll" aria-hidden="true">
+            <div className="lux-hero__scroll-line" />
+          </div>
+        </section>
+
+        {/* ── Booking ── */}
+        <section id="booking" ref={bookingRef} className="lux-section">
           <div className="container">
-            <motion.div className="section-header" variants={itemVariants}>
-              <h2>{copy.howTitle}</h2>
-              <p>{copy.howSubtitle}</p>
-            </motion.div>
-            <motion.div className="info-grid" variants={staggerVariants}>
-              <motion.div
-                className="info-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">01</span>
+                <h2>{copy.navBooking}</h2>
+              </div>
+            </div>
+            <div className="lux-booking-frame lux-reveal">
+              <BookingForm language={language} />
+            </div>
+          </div>
+        </section>
+
+        {/* ── How it works ── */}
+        <section ref={howRef} className="lux-section lux-section--alt">
+          <div className="container">
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">02</span>
+                <h2>{copy.howTitle}</h2>
+                <p className="lux-section__sub">{copy.howSubtitle}</p>
+              </div>
+            </div>
+            <div className="lux-cards lux-reveal">
+              <div className="lux-card">
+                <div className="lux-card__num">01</div>
                 <h4>{copy.prepTitle}</h4>
                 <p>{copy.prepText}</p>
-              </motion.div>
-              <motion.div
-                className="info-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
+              </div>
+              <div className="lux-card">
+                <div className="lux-card__num">02</div>
                 <h4>{copy.cancelTitle}</h4>
                 <p>{copy.cancelText}</p>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
-        </motion.section>
+        </section>
 
-        <motion.section
-          id="studio"
-          className="section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionVariants}
-        >
+        {/* ── Studio ── */}
+        <section id="studio" ref={studioRef} className="lux-section">
           <div className="container">
-            <motion.div className="section-header" variants={itemVariants}>
-              <h2>{copy.studioTitle}</h2>
-              <p>{copy.studioSubtitle}</p>
-            </motion.div>
-            <motion.div className="info-grid" variants={staggerVariants}>
-              <motion.div
-                className="info-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">03</span>
+                <h2>{copy.studioTitle}</h2>
+                <p className="lux-section__sub">{copy.studioSubtitle}</p>
+              </div>
+            </div>
+            <div className="lux-cards lux-reveal">
+              <div className="lux-card">
+                <div className="lux-card__num">—</div>
                 <h4>{copy.hours}</h4>
                 <p>{siteConfig.hours}</p>
-              </motion.div>
-              <motion.div
-                className="info-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
+              </div>
+              <div className="lux-card">
+                <div className="lux-card__num">—</div>
                 <h4>{copy.location}</h4>
                 <p>{copy.locationText}</p>
-              </motion.div>
-              <motion.div
-                className="info-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
+              </div>
+              <div className="lux-card">
+                <div className="lux-card__num">—</div>
                 <h4>{copy.contact}</h4>
                 <p>
                   {siteConfig.phone && <span>{siteConfig.phone}</span>}
-                  {siteConfig.email && (
-                    <span>
-                      {siteConfig.phone ? " | " : ""}
-                      {siteConfig.email}
-                    </span>
-                  )}
-                  {!siteConfig.phone && !siteConfig.email && (
-                    <span>{copy.contactFallback}</span>
-                  )}
+                  {siteConfig.email && <span>{siteConfig.phone ? " | " : ""}{siteConfig.email}</span>}
+                  {!siteConfig.phone && !siteConfig.email && <span>{copy.contactFallback}</span>}
                 </p>
-              </motion.div>
-            </motion.div>
-            <motion.div
-              className="map-card"
-              variants={cardVariants}
-              whileHover={cardHover}
-              whileTap={cardTap}
-            >
+              </div>
+            </div>
+            <div className="lux-map lux-reveal">
               <iframe
                 title="Doctor Barber lokacija"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2903.2545068929708!2d21.8622563!3d43.3089314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4755b0b14f921bab%3A0xa0b0730c4935e4ae!2sDoctor%20Barber!5e0!3m2!1sen!2srs!4v1766882078982!5m2!1sen!2srs"
@@ -1055,9 +824,9 @@ export default function HomePage() {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
-              <div className="map-actions">
+              <div className="lux-map__actions">
                 <a
-                  className="button outline"
+                  className="lux-btn lux-btn--outline"
                   href="https://maps.app.goo.gl/V9ZjSA8dCXB2cwbn7"
                   target="_blank"
                   rel="noreferrer"
@@ -1065,124 +834,107 @@ export default function HomePage() {
                   {copy.openMaps}
                 </a>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.section>
-        <motion.section
-          className="section gallery"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionVariants}
-        >
-          <div className="container">
-            <motion.div className="section-header" variants={itemVariants}>
-              <h2>{copy.galleryTitle}</h2>
-              <p>{copy.galleryText}</p>
-            </motion.div>
-            <motion.div className="gallery-grid" variants={staggerVariants}>
-              <motion.div
-                className="gallery-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
-                <Image
-                  src="/newhero.jpg"
-                  alt="Ambijent studija"
-                  fill
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                />
-              </motion.div>
-              <motion.div
-                className="gallery-card"
-                variants={cardVariants}
-                whileHover={cardHover}
-                whileTap={cardTap}
-              >
-                <Image
-                  src="/new1.jpg"
-                  alt="Detalji enterijera"
-                  fill
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                />
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.section>
+        </section>
 
-        <motion.section
-          className="section instagram-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionVariants}
-        >
+        {/* ── Gallery ── */}
+        <section ref={galleryRef} className="lux-section lux-section--alt">
           <div className="container">
-            <motion.div className="section-header" variants={itemVariants}>
-              <h2>{copy.instagramTitle}</h2>
-              <p>{copy.instagramText}</p>
-            </motion.div>
-            <motion.div className="instagram-showcase" variants={cardVariants}>
-              <motion.div
-                className="instagram-orb instagram-orb--one"
-                animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
-                transition={prefersReducedMotion ? {} : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                className="instagram-orb instagram-orb--two"
-                animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
-                transition={prefersReducedMotion ? {} : { duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <Card className="instagram-card" shadow="lg">
-                <CardBody>
-                  <div className="instagram-card__head">
-                    <strong>{copy.instagramHandle}</strong>
-                    <span>Doctor Barber</span>
-                  </div>
-                  <div className="instagram-card__grid" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <HeroButton
-                    as="a"
-                    href="https://www.instagram.com/doctor__barber/?hl=en"
-                    target="_blank"
-                    rel="noreferrer"
-                    color="primary"
-                    radius="full"
-                    className="instagram-card__button"
-                  >
-                    {copy.instagramButton}
-                  </HeroButton>
-                </CardBody>
-              </Card>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        <motion.section
-          className="section review-section"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={sectionVariants}
-        >
-          <div className="container">
-            <motion.div className="section-header" variants={itemVariants}>
-              <h2>{copy.reviewTitle}</h2>
-              <p>{copy.reviewText}</p>
-            </motion.div>
-            <motion.div className="banner review-banner" variants={cardVariants}>
-              <div className="review-copy">
-                <strong>Doctor Barber Nis</strong>
-                <p>{copy.reviewBody}</p>
-                <p className="seo-note">{copy.reviewSeo}</p>
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">04</span>
+                <h2>{copy.galleryTitle}</h2>
+                <p className="lux-section__sub">{copy.galleryText}</p>
               </div>
-              <div className="review-actions">
+            </div>
+            <div className="lux-gallery lux-reveal">
+              <div className="lux-gallery__item">
+                <Image src="/newhero.jpg" alt="Ambijent studija" fill sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+                <div className="gallery-wipe" aria-hidden="true" />
+              </div>
+              <div className="lux-gallery__item">
+                <Image src="/new1.jpg" alt="Detalji enterijera" fill sizes="(max-width: 900px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+                <div className="gallery-wipe" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Instagram ── */}
+        <section ref={instagramRef} className="lux-section">
+          <div className="container">
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">05</span>
+                <h2>{copy.instagramTitle}</h2>
+                <p className="lux-section__sub">{copy.instagramText}</p>
+              </div>
+            </div>
+            <div className="lux-instagram lux-reveal">
+              <motion.div
+                className="lux-instagram__orb lux-instagram__orb--a"
+                animate={prefersReducedMotion ? {} : { y: [0, -16, 0] }}
+                transition={prefersReducedMotion ? {} : { duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="lux-instagram__orb lux-instagram__orb--b"
+                animate={prefersReducedMotion ? {} : { y: [0, 12, 0] }}
+                transition={prefersReducedMotion ? {} : { duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }}
+                transition={prefersReducedMotion ? {} : { duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Card className="instagram-card" shadow="lg">
+                  <CardBody>
+                    <div className="instagram-card__head">
+                      <strong>{copy.instagramHandle}</strong>
+                      <span>Doctor Barber</span>
+                    </div>
+                    <div className="instagram-card__grid" aria-hidden="true">
+                      <span /><span /><span />
+                    </div>
+                    <HeroButton
+                      as="a"
+                      href="https://www.instagram.com/doctor__barber/?hl=en"
+                      target="_blank"
+                      rel="noreferrer"
+                      color="primary"
+                      radius="full"
+                      className="instagram-card__button"
+                    >
+                      {copy.instagramButton}
+                    </HeroButton>
+                  </CardBody>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Google Review ── */}
+        <section ref={reviewRef} className="lux-section lux-section--alt">
+          <div className="container">
+            <div className="lux-section__header lux-reveal">
+              <div className="lux-line" />
+              <div className="lux-section__meta">
+                <span className="lux-label">06</span>
+                <h2>{copy.reviewTitle}</h2>
+                <p className="lux-section__sub">{copy.reviewText}</p>
+              </div>
+            </div>
+            <div className="lux-review lux-reveal">
+              <div className="lux-review__copy">
+                <strong>Doctor Barber Niš</strong>
+                <p>{copy.reviewBody}</p>
+                <p className="lux-review__seo">{copy.reviewSeo}</p>
+              </div>
+              <div className="lux-review__action">
                 <a
-                  className="button outline"
+                  className="lux-btn lux-btn--gold"
                   href="https://share.google/hF9NR9UUlcHPwfLcM"
                   target="_blank"
                   rel="noreferrer"
@@ -1190,36 +942,21 @@ export default function HomePage() {
                   {copy.reviewButton}
                 </a>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.section>
+        </section>
       </main>
 
-      <footer className="footer">
-        <div className="container">
-          <p>Doctor Barber | {year}</p>
+      {/* ── Footer ── */}
+      <footer className="lux-footer">
+        <div className="container lux-footer__inner">
+          <div className="lux-footer__brand">
+            <Image src="/logo.png" alt="Doctor Barber" width={26} height={26} />
+            <span>Doctor Barber</span>
+          </div>
+          <p>© {year} · Barber Studio · Niš</p>
         </div>
       </footer>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
