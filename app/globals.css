@@ -3720,6 +3720,162 @@ h4 {
   justify-content: flex-end;
 }
 
+/* ── Appointment item actions ── */
+.appointment-item__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Reschedule Modal ── */
+.reschedule-modal {
+  max-width: 560px;
+  width: 100%;
+}
+
+.reschedule-modal__current {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.reschedule-modal__body {
+  display: grid;
+  gap: 20px;
+}
+
+.reschedule-modal__section {
+  display: grid;
+  gap: 10px;
+}
+
+.reschedule-modal__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.reschedule-modal__hint {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.reschedule-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reschedule-date-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  min-width: 58px;
+}
+
+.reschedule-date-btn:hover:not(:disabled) {
+  border-color: rgba(201, 168, 76, 0.4);
+  background: var(--gold-dim);
+}
+
+.reschedule-date-btn.is-active {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--gold-bright);
+}
+
+.reschedule-date-btn.is-empty {
+  opacity: 0.35;
+}
+
+.reschedule-date-btn:disabled {
+  cursor: not-allowed;
+}
+
+.reschedule-date-btn__wd {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.reschedule-date-btn.is-active .reschedule-date-btn__wd {
+  color: var(--gold);
+}
+
+.reschedule-date-btn__d {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.reschedule-date-btn__count {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.reschedule-date-btn.is-active .reschedule-date-btn__count {
+  color: var(--gold);
+}
+
+.reschedule-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Admin Reschedule inline form ── */
+.admin-reschedule {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.05);
+  display: grid;
+  gap: 14px;
+}
+
+.admin-reschedule__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-reschedule__header strong {
+  font-size: 0.95rem;
+  color: var(--gold-bright);
+}
+
+.admin-reschedule__close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.admin-reschedule__close:hover {
+  color: var(--text);
+  border-color: rgba(240, 234, 216, 0.3);
+}
+
 .install-modal__card {
   max-width: 560px;
 }

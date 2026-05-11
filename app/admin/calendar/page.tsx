@@ -439,6 +439,8 @@ export default function AdminCalendarPage() {
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [adminRescheduleForm, setAdminRescheduleForm] = useState<{ date: string; time: string; serviceId: string } | null>(null);
+  const [adminRescheduleStatus, setAdminRescheduleStatus] = useState<StatusState>({ type: "idle" });
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(
     null
   );
@@ -991,6 +993,78 @@ export default function AdminCalendarPage() {
   const handleCloseAppointmentModal = () => {
     setSelectedAppointment(null);
     setAppointmentActionStatus({ type: "idle" });
+    setAdminRescheduleForm(null);
+    setAdminRescheduleStatus({ type: "idle" });
+  };
+
+  const handleAdminReschedule = async () => {
+    if (!selectedAppointment || !adminRescheduleForm || !apiBaseUrl || !adminKey) return;
+    if (!adminRescheduleForm.date || !adminRescheduleForm.time) {
+      setAdminRescheduleStatus({ type: "error", message: "Izaberi datum i vreme." });
+      return;
+    }
+
+    const resolvedServiceId = adminRescheduleForm.serviceId || selectedAppointment.serviceId || "";
+    const resolvedService = serviceItems.find((s) => s.id === resolvedServiceId);
+    const resolvedServiceName = resolvedService?.name || selectedAppointment.serviceName;
+    const resolvedDuration = resolvedService?.duration || selectedAppointment.duration || "";
+    const resolvedPrice = resolvedService?.price ?? selectedAppointment.price ?? 0;
+
+    setAdminRescheduleStatus({ type: "loading" });
+
+    try {
+      const createRes = await fetch(`${apiBaseUrl}/appointments.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+        body: JSON.stringify({
+          adminAction: "create",
+          clientName: selectedAppointment.clientName,
+          phone: selectedAppointment.phone ?? "",
+          email: selectedAppointment.email ?? "",
+          serviceId: resolvedServiceId,
+          serviceName: resolvedServiceName,
+          duration: resolvedDuration,
+          price: resolvedPrice,
+          date: adminRescheduleForm.date,
+          time: adminRescheduleForm.time,
+          notes: selectedAppointment.notes ?? "",
+          status: "confirmed",
+          source: "admin",
+          rescheduledFromId: selectedAppointment.id,
+        }),
+      });
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData?.message || "Ne mogu da kreiram novi termin.");
+
+      await fetch(`${apiBaseUrl}/appointments.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+        body: JSON.stringify({ adminAction: "delete", id: selectedAppointment.id }),
+      });
+
+      // Best-effort client push notification
+      if (selectedAppointment.phone) {
+        fetch(`${apiBaseUrl}/push-subscriptions.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Admin-Key": adminKey },
+          body: JSON.stringify({
+            action: "notify_client",
+            phone: selectedAppointment.phone,
+            title: "Termin prezakazan",
+            body: `Vas termin za ${resolvedServiceName} je prezakazan na ${adminRescheduleForm.date.split("-").reverse().join(".")} u ${adminRescheduleForm.time}.`,
+          }),
+        }).catch(() => {});
+      }
+
+      setAdminRescheduleStatus({ type: "success", message: "Termin je prezakazan." });
+      handleCloseAppointmentModal();
+      await refreshData(weekDateStrings);
+    } catch (err) {
+      setAdminRescheduleStatus({
+        type: "error",
+        message: err instanceof Error ? err.message : t.genericError,
+      });
+    }
   };
 
   const handleWeekSwipeStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -2028,6 +2102,22 @@ export default function AdminCalendarPage() {
                 Izmeni
               </button>
               <button
+                className="button"
+                type="button"
+                onClick={() => {
+                  const resolvedSvcId =
+                    selectedAppointment.serviceId ||
+                    serviceItems.find((s) => s.name === selectedAppointment.serviceName)?.id ||
+                    serviceItems[0]?.id ||
+                    "";
+                  setAdminRescheduleForm({ date: "", time: "", serviceId: resolvedSvcId });
+                  setAdminRescheduleStatus({ type: "idle" });
+                }}
+                disabled={appointmentActionStatus.type === "loading" || adminRescheduleForm !== null}
+              >
+                Prezakazi
+              </button>
+              <button
                 className="button outline"
                 type="button"
                 onClick={() => handleDeleteAppointment(selectedAppointment)}
@@ -2053,6 +2143,92 @@ export default function AdminCalendarPage() {
                 </button>
               ))}
             </div>
+
+            {adminRescheduleForm !== null && (
+              <div className="admin-reschedule">
+                <div className="admin-reschedule__header">
+                  <strong>Novi termin</strong>
+                  <button
+                    type="button"
+                    className="admin-reschedule__close"
+                    onClick={() => { setAdminRescheduleForm(null); setAdminRescheduleStatus({ type: "idle" }); }}
+                    aria-label="Zatvori"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="form-row">
+                  <label htmlFor="admin-reschedule-service">Usluga</label>
+                  <select
+                    id="admin-reschedule-service"
+                    className="select"
+                    value={adminRescheduleForm.serviceId}
+                    onChange={(e) =>
+                      setAdminRescheduleForm((prev) => prev ? { ...prev, serviceId: e.target.value } : prev)
+                    }
+                  >
+                    {serviceItems.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.duration})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label htmlFor="admin-reschedule-date">Datum</label>
+                  <input
+                    id="admin-reschedule-date"
+                    className="input"
+                    type="date"
+                    value={adminRescheduleForm.date}
+                    min={formatDate(firstWorkingDay)}
+                    max={formatDate(lastDay)}
+                    onChange={(e) =>
+                      setAdminRescheduleForm((prev) => prev ? { ...prev, date: e.target.value } : prev)
+                    }
+                  />
+                </div>
+                <div className="form-row">
+                  <label htmlFor="admin-reschedule-time">Vreme</label>
+                  <input
+                    id="admin-reschedule-time"
+                    className="input"
+                    type="time"
+                    value={adminRescheduleForm.time}
+                    onChange={(e) =>
+                      setAdminRescheduleForm((prev) => prev ? { ...prev, time: e.target.value } : prev)
+                    }
+                  />
+                </div>
+                {adminRescheduleStatus.type !== "idle" && adminRescheduleStatus.message && (
+                  <div className={`form-status ${adminRescheduleStatus.type}`}>
+                    {adminRescheduleStatus.message}
+                  </div>
+                )}
+                <div className="calendar-form__actions">
+                  <button
+                    className="button outline"
+                    type="button"
+                    onClick={() => { setAdminRescheduleForm(null); setAdminRescheduleStatus({ type: "idle" }); }}
+                    disabled={adminRescheduleStatus.type === "loading"}
+                  >
+                    Odustani
+                  </button>
+                  <button
+                    className="button"
+                    type="button"
+                    onClick={handleAdminReschedule}
+                    disabled={
+                      !adminRescheduleForm.date ||
+                      !adminRescheduleForm.time ||
+                      adminRescheduleStatus.type === "loading"
+                    }
+                  >
+                    {adminRescheduleStatus.type === "loading" ? "Prezakazivanje..." : "Potvrdi prezakazivanje"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

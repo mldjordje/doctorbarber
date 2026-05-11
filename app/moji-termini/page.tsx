@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateDDMMYYYY, formatWeekdayAndDate, normalizeTime24 } from "@/lib/dateTime";
+import RescheduleModal from "@/components/RescheduleModal";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
@@ -56,6 +57,7 @@ export default function MyAppointmentsPage() {
   const [status, setStatus] = useState<StatusState>({ type: "idle" });
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelStatus, setCancelStatus] = useState<StatusState>({ type: "idle" });
+  const [rescheduleTarget, setRescheduleTarget] = useState<Appointment | null>(null);
   const [bookingSettings, setBookingSettings] = useState<BookingSettings>({
     minBookingLeadMinutes: 60,
     minCancelLeadMinutes: 60,
@@ -425,19 +427,28 @@ export default function MyAppointmentsPage() {
                     </span>
                   )}
                   {appointment.status !== "cancelled" && (
-                    <button
-                      className="button small outline"
-                      type="button"
-                      disabled={!canCancel || cancelStatus.type === "loading"}
-                      onClick={() => handleCancelRequest(appointment)}
-                      title={
-                        canCancel
-                          ? ""
-                          : `Otkazivanje moguce najkasnije ${bookingSettings.minCancelLeadMinutes} min pre termina.`
-                      }
-                    >
-                      {canCancel ? "Otkazi" : "Otkazivanje zatvoreno"}
-                    </button>
+                    <div className="appointment-item__actions">
+                      <button
+                        className="button small"
+                        type="button"
+                        onClick={() => setRescheduleTarget(appointment)}
+                      >
+                        Prezakazi
+                      </button>
+                      <button
+                        className="button small outline"
+                        type="button"
+                        disabled={!canCancel || cancelStatus.type === "loading"}
+                        onClick={() => handleCancelRequest(appointment)}
+                        title={
+                          canCancel
+                            ? ""
+                            : `Otkazivanje moguce najkasnije ${bookingSettings.minCancelLeadMinutes} min pre termina.`
+                        }
+                      >
+                        {canCancel ? "Otkazi" : "Zatvoreno"}
+                      </button>
+                    </div>
                   )}
                 </article>
               );
@@ -471,6 +482,19 @@ export default function MyAppointmentsPage() {
             ))}
           </div>
         </section>
+      {rescheduleTarget && client && (
+        <RescheduleModal
+          appointment={rescheduleTarget}
+          client={client}
+          apiBaseUrl={apiBaseUrl}
+          onSuccess={() => {
+            setRescheduleTarget(null);
+            fetchAppointments(client.token);
+          }}
+          onClose={() => setRescheduleTarget(null)}
+        />
+      )}
+
       {cancelTarget && (
         <div className="confirm-modal" role="dialog" aria-modal="true">
           <div className="confirm-modal__backdrop" onClick={handleCancelClose} />
