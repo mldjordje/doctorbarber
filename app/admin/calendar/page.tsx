@@ -2083,65 +2083,86 @@ export default function AdminCalendarPage() {
               )}
 
             <div className="calendar-appointment__actions">
-              {selectedAppointment.phone && (
-                <>
-                  <a className="button outline" href={`tel:${selectedAppointment.phone}`}>
-                    Pozovi
-                  </a>
-                  <a className="button outline" href={`sms:${selectedAppointment.phone}`}>
-                    Posalji poruku
-                  </a>
-                </>
-              )}
               <button
-                className="button outline"
+                className={`button calendar-appointment__confirm-btn${
+                  (selectedAppointment.status || "pending") === "confirmed" ? " is-confirmed" : ""
+                }`}
                 type="button"
-                onClick={() => handleEditAppointment(selectedAppointment)}
-                disabled={appointmentActionStatus.type === "loading"}
+                onClick={() =>
+                  handleUpdateAppointmentStatus(selectedAppointment, "confirmed")
+                }
+                disabled={
+                  appointmentActionStatus.type === "loading" ||
+                  (selectedAppointment.status || "pending") === "confirmed"
+                }
               >
-                Izmeni
+                {(selectedAppointment.status || "pending") === "confirmed"
+                  ? "✓ Potvrdjen"
+                  : "Potvrdi termin"}
               </button>
-              <button
-                className="button"
-                type="button"
-                onClick={() => {
-                  const resolvedSvcId =
-                    selectedAppointment.serviceId ||
-                    serviceItems.find((s) => s.name === selectedAppointment.serviceName)?.id ||
-                    serviceItems[0]?.id ||
-                    "";
-                  setAdminRescheduleForm({ date: "", time: "", serviceId: resolvedSvcId });
-                  setAdminRescheduleStatus({ type: "idle" });
-                }}
-                disabled={appointmentActionStatus.type === "loading" || adminRescheduleForm !== null}
-              >
-                Prezakazi
-              </button>
-              <button
-                className="button outline"
-                type="button"
-                onClick={() => handleDeleteAppointment(selectedAppointment)}
-                disabled={appointmentActionStatus.type === "loading"}
-              >
-                Obrisi
-              </button>
-              {statusOptions.map((option) => (
+
+              <div className="calendar-appointment__secondary">
+                {selectedAppointment.phone && (
+                  <>
+                    <a
+                      className="button outline small"
+                      href={`tel:${selectedAppointment.phone}`}
+                    >
+                      Pozovi
+                    </a>
+                    <a
+                      className="button outline small"
+                      href={`sms:${selectedAppointment.phone}`}
+                    >
+                      Poruka
+                    </a>
+                  </>
+                )}
                 <button
-                  key={option.value}
-                  className={`button small outline ${
-                    (selectedAppointment.status || "pending") === option.value
-                      ? "is-active"
-                      : ""
+                  className="button outline small"
+                  type="button"
+                  onClick={() => handleEditAppointment(selectedAppointment)}
+                  disabled={appointmentActionStatus.type === "loading"}
+                >
+                  Izmeni
+                </button>
+                <button
+                  className="button small"
+                  type="button"
+                  onClick={() => {
+                    const resolvedSvcId =
+                      selectedAppointment.serviceId ||
+                      serviceItems.find((s) => s.name === selectedAppointment.serviceName)?.id ||
+                      serviceItems[0]?.id ||
+                      "";
+                    setAdminRescheduleForm({ date: "", time: "", serviceId: resolvedSvcId });
+                    setAdminRescheduleStatus({ type: "idle" });
+                  }}
+                  disabled={appointmentActionStatus.type === "loading" || adminRescheduleForm !== null}
+                >
+                  Prezakazi
+                </button>
+                <button
+                  className="button outline small"
+                  type="button"
+                  onClick={() => handleDeleteAppointment(selectedAppointment)}
+                  disabled={appointmentActionStatus.type === "loading"}
+                >
+                  Obrisi
+                </button>
+                <button
+                  className={`button small outline calendar-appointment__noshow-btn${
+                    (selectedAppointment.status || "pending") === "no_show" ? " is-active" : ""
                   }`}
                   type="button"
                   onClick={() =>
-                    handleUpdateAppointmentStatus(selectedAppointment, option.value)
+                    handleUpdateAppointmentStatus(selectedAppointment, "no_show")
                   }
                   disabled={appointmentActionStatus.type === "loading"}
                 >
-                  {option.label}
+                  Nije dosao
                 </button>
-              ))}
+              </div>
             </div>
 
             {adminRescheduleForm !== null && (

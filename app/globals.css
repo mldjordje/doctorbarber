@@ -2340,9 +2340,8 @@ h4 {
 }
 
 .calendar-appointment__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  gap: 10px;
 }
 
 .calendar-appointment__actions .button {
@@ -2354,6 +2353,65 @@ h4 {
   background: var(--accent);
   color: #ffffff;
   border-color: transparent;
+}
+
+.calendar-appointment__confirm-btn {
+  width: 100%;
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+}
+
+.calendar-appointment__confirm-btn.is-confirmed {
+  background: #1a8a4a;
+  cursor: default;
+  opacity: 0.85;
+}
+
+.calendar-appointment__confirm-btn.is-confirmed:hover {
+  transform: none;
+}
+
+.calendar-appointment__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.calendar-appointment__secondary .button {
+  padding: 8px 13px;
+}
+
+.calendar-appointment__noshow-btn.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+@media (max-width: 600px) {
+  .calendar-modal__card::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(17, 17, 17, 0.15);
+    border-radius: 999px;
+    margin: 0 auto -4px;
+  }
+
+  .calendar-appointment__confirm-btn {
+    padding: 15px 20px;
+    font-size: 1rem;
+  }
+
+  .calendar-appointment__secondary {
+    gap: 8px;
+  }
+
+  .calendar-appointment__secondary .button {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
 }
 
 .month-picker {
