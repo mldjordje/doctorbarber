@@ -3914,9 +3914,18 @@ h4 {
   border-radius: 22px;
   background: linear-gradient(145deg, rgba(201, 168, 76, 0.12), rgba(201, 168, 76, 0.04));
   border: 1px solid rgba(201, 168, 76, 0.28);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   box-shadow: 0 0 40px rgba(201, 168, 76, 0.12);
+}
+
+.lux-preloader__mark img {
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: contain;
+  display: block;
 }
 
 .lux-preloader__title {
@@ -4013,9 +4022,18 @@ h4 {
   border-radius: 16px;
   background: linear-gradient(145deg, rgba(201, 168, 76, 0.1), rgba(201, 168, 76, 0.03));
   border: 1px solid rgba(201, 168, 76, 0.2);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   transition: box-shadow 0.3s ease;
+}
+
+.lux-brand__mark img {
+  width: 38px !important;
+  height: 38px !important;
+  object-fit: contain;
+  display: block;
 }
 
 .lux-brand__mark:hover {
