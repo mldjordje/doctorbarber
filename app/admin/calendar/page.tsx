@@ -335,6 +335,7 @@ export default function AdminCalendarPage() {
       appointmentUpdated: "Termin je izmenjen.",
       appointmentSaved: "Termin je sacuvan.",
       cannotDeleteBlock: "Ne mogu da obrisem blokadu.",
+      confirmDeleteBlock: "Da li sigurno zelis da obrises blokadu?",
       feedMissing: "Dodaj API bazu i admin key da bi generisao feed.",
       chooseDate: "Izaberi datum",
     },
@@ -356,6 +357,7 @@ export default function AdminCalendarPage() {
       appointmentUpdated: "Appointment updated.",
       appointmentSaved: "Appointment saved.",
       cannotDeleteBlock: "Unable to delete block.",
+      confirmDeleteBlock: "Are you sure you want to delete this block?",
       feedMissing: "Add API base URL and admin key to generate feed.",
       chooseDate: "Select date",
     },
@@ -377,6 +379,7 @@ export default function AdminCalendarPage() {
       appointmentUpdated: "Termin aktualisiert.",
       appointmentSaved: "Termin gespeichert.",
       cannotDeleteBlock: "Sperrzeit konnte nicht gelöscht werden.",
+      confirmDeleteBlock: "Möchtest du diese Sperrzeit wirklich löschen?",
       feedMissing: "API-URL und Admin-Key hinzufügen, um den Feed zu erzeugen.",
       chooseDate: "Datum wählen",
     },
@@ -398,6 +401,7 @@ export default function AdminCalendarPage() {
       appointmentUpdated: "Appuntamento aggiornato.",
       appointmentSaved: "Appuntamento salvato.",
       cannotDeleteBlock: "Impossibile eliminare il blocco.",
+      confirmDeleteBlock: "Sei sicuro di voler eliminare questo blocco?",
       feedMissing: "Aggiungi URL API e admin key per generare il feed.",
       chooseDate: "Seleziona data",
     },
@@ -1407,12 +1411,17 @@ export default function AdminCalendarPage() {
       }
 
       if (editingBlockId) {
-        await fetch(`${apiBaseUrl}/blocks.php?id=${editingBlockId}`, {
+        const deleteResponse = await fetch(`${apiBaseUrl}/blocks.php?id=${editingBlockId}`, {
           method: "DELETE",
           headers: {
             "X-Admin-Key": adminKey,
           },
         });
+        const deleteData = await deleteResponse.json();
+
+        if (!deleteResponse.ok) {
+          throw new Error(deleteData?.message || t.cannotDeleteBlock);
+        }
       }
 
       setEditingBlockId(null);
@@ -1546,6 +1555,11 @@ export default function AdminCalendarPage() {
 
   const handleDeleteBlock = async (id: string) => {
     if (!apiBaseUrl || !adminKey) {
+      return;
+    }
+
+    const confirmed = window.confirm(t.confirmDeleteBlock);
+    if (!confirmed) {
       return;
     }
 
@@ -2006,13 +2020,24 @@ export default function AdminCalendarPage() {
                 </div>
                 <div className="calendar-form__actions">
                   {editingBlockId && (
-                    <button
-                      className="button outline"
-                      type="button"
-                      onClick={handleCancelEdit}
-                    >
-                      Otkazi izmenu
-                    </button>
+                    <>
+                      <button
+                        className="button outline"
+                        type="button"
+                        onClick={handleCancelEdit}
+                        disabled={status.type === "loading"}
+                      >
+                        Otkazi izmenu
+                      </button>
+                      <button
+                        className="button outline"
+                        type="button"
+                        onClick={() => handleDeleteBlock(editingBlockId)}
+                        disabled={status.type === "loading"}
+                      >
+                        Obrisi
+                      </button>
+                    </>
                   )}
                   <button className="button" type="submit">
                     {editingBlockId ? "Sacuvaj izmene" : "Sacuvaj blokadu"}
