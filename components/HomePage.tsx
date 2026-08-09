@@ -955,6 +955,15 @@ export default function HomePage() {
             <span>Doctor Barber</span>
           </div>
           <p>© {year} · Barber Studio · Niš</p>
+          <a
+            className="lux-footer__credit"
+            href="https://adspire.rs"
+            target="_blank"
+            rel="noopener"
+          >
+            <span>Izrada sajta</span>
+            <span className="lux-footer__credit-name">Adspire</span>
+          </a>
         </div>
       </footer>
     </div>

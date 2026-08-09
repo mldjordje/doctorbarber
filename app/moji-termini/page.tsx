@@ -411,11 +411,18 @@ export default function MyAppointmentsPage() {
             </div>
           )}
           <div className="appointments-list">
-            {upcoming.map((appointment) => {
+            {upcoming.map((appointment, index) => {
               const canCancel = canCancelAppointment(appointment);
+              const isNext = index === 0;
               return (
-                <article key={appointment.id} className="appointment-item">
+                <article
+                  key={appointment.id}
+                  className={`appointment-item${isNext ? " appointment-item--next" : ""}`}
+                >
                   <div>
+                    {isNext && (
+                      <span className="appointment-item__next-badge">Sledeci termin</span>
+                    )}
                     <strong>{appointment.serviceName}</strong>
                     <span>
                       {formatLongDate(appointment.date)} | {normalizeTime(appointment.time)}
