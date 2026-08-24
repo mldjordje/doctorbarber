@@ -62,6 +62,12 @@ export default function AdminClientsPage() {
       unblockClient: "Odblokiraj",
       blockedLabel: "Blokiran",
       cannotToggleBlock: "Ne mogu da promenim status blokade.",
+      allClients: "Svi",
+      onlyBlocked: "Blokirani",
+      visits: "termina",
+      lastVisit: "Poslednji dolazak",
+      registered: "Registrovan",
+      neverVisited: "Bez termina",
     },
     en: {
       apiMissing: "API is not configured. Add NEXT_PUBLIC_API_BASE_URL to .env.",
@@ -92,6 +98,12 @@ export default function AdminClientsPage() {
       unblockClient: "Unblock",
       blockedLabel: "Blocked",
       cannotToggleBlock: "Unable to update blocked status.",
+      allClients: "All",
+      onlyBlocked: "Blocked",
+      visits: "appointments",
+      lastVisit: "Last visit",
+      registered: "Registered",
+      neverVisited: "No appointments",
     },
     de: {
       apiMissing: "API ist nicht konfiguriert. Füge NEXT_PUBLIC_API_BASE_URL zu .env hinzu.",
@@ -121,6 +133,12 @@ export default function AdminClientsPage() {
       blockClient: "Sperren",
       unblockClient: "Entsperren",
       blockedLabel: "Gesperrt",
+      allClients: "Alle",
+      onlyBlocked: "Gesperrt",
+      visits: "Termine",
+      lastVisit: "Letzter Besuch",
+      registered: "Registriert",
+      neverVisited: "Keine Termine",
       cannotToggleBlock: "Sperrstatus kann nicht geändert werden.",
     },
     it: {
@@ -151,6 +169,12 @@ export default function AdminClientsPage() {
       blockClient: "Blocca",
       unblockClient: "Sblocca",
       blockedLabel: "Bloccato",
+      allClients: "Tutti",
+      onlyBlocked: "Bloccati",
+      visits: "appuntamenti",
+      lastVisit: "Ultima visita",
+      registered: "Registrato",
+      neverVisited: "Nessun appuntamento",
       cannotToggleBlock: "Impossibile aggiornare lo stato di blocco.",
     },
   };
@@ -160,6 +184,7 @@ export default function AdminClientsPage() {
   const [formStatus, setFormStatus] = useState<StatusState>({ type: "idle" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showBlockedOnly, setShowBlockedOnly] = useState(false);
   const [formState, setFormState] = useState({
     name: "",
     phone: "",
@@ -225,13 +250,17 @@ export default function AdminClientsPage() {
   }, []);
 
   const filteredClients = (() => {
+    const base = showBlockedOnly ? clients.filter((client) => client.blocked) : clients;
+    const byLastVisit = [...base].sort((a, b) =>
+      (b.lastAppointment || "").localeCompare(a.lastAppointment || "")
+    );
     const term = searchTerm.trim().toLowerCase().replace(/\s+/g, " ");
     if (!term) {
-      return clients;
+      return byLastVisit;
     }
 
     const normalizedPhone = term.replace(/\D+/g, "");
-    return clients.filter((client) => {
+    return byLastVisit.filter((client) => {
       const name = (client.name || "").toLowerCase().replace(/\s+/g, " ").trim();
       const email = (client.email || "").toLowerCase().trim();
       const phone = (client.phone || "").replace(/\D+/g, "");
@@ -398,61 +427,120 @@ export default function AdminClientsPage() {
       subtitle={`${t.subtitlePrefix} ${clients.length}`}
     >
       <div className="admin-grid">
-        <div className="admin-toolbar">
-          <button className="button" type="button" onClick={fetchClients}>
-            {t.refreshList}
-          </button>
+        <div className="cli-toolbar">
           <input
-            className="input"
+            className="input cli-toolbar__search"
             type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder={t.searchPlaceholder}
             aria-label={t.search}
-            style={{ maxWidth: 360 }}
           />
-          {status.type !== "idle" && status.message && (
-            <div className={`form-status ${status.type}`}>{status.message}</div>
-          )}
+          <div className="cli-toolbar__filters">
+            <button
+              type="button"
+              className={`notif-chip${showBlockedOnly ? "" : " is-active"}`}
+              onClick={() => setShowBlockedOnly(false)}
+            >
+              {t.allClients}
+              <span className="notif-chip__count">{clients.length}</span>
+            </button>
+            <button
+              type="button"
+              className={`notif-chip${showBlockedOnly ? " is-active" : ""}`}
+              onClick={() => setShowBlockedOnly(true)}
+            >
+              {t.onlyBlocked}
+              <span className="notif-chip__count">
+                {clients.filter((client) => client.blocked).length}
+              </span>
+            </button>
+          </div>
+          <button className="button outline" type="button" onClick={fetchClients}>
+            {t.refreshList}
+          </button>
         </div>
 
-        {filteredClients.length === 0 && status.type !== "loading" && (
-          <div className="admin-card">{t.noClients}</div>
+        {status.type !== "idle" && status.message && (
+          <div className={`form-status ${status.type}`}>{status.message}</div>
         )}
 
-        {filteredClients.map((client) => (
-          <div key={client.id} className="admin-card">
-            <strong>{client.name}</strong>
-            <span>{client.phone}</span>
-            {client.blocked && (
-              <span className="status-pill cancelled">{t.blockedLabel}</span>
-            )}
-            {client.email && <span>{client.email}</span>}
-            {client.appointmentCount !== undefined && (
-              <span>Broj termina: {client.appointmentCount}</span>
-            )}
-            {client.lastAppointment && (
-              <span>Poslednji termin: {formatSqlDateTimeDDMMYYYY(client.lastAppointment)}</span>
-            )}
-            {client.createdAt && (
-              <span>Registracija: {formatSqlDateTimeDDMMYYYY(client.createdAt)}</span>
-            )}
-            {client.address && <span>Adresa: {client.address}</span>}
-            {client.description && <span>Opis: {client.description}</span>}
-            <div className="admin-actions">
-              <button className="button outline" type="button" onClick={() => handleEdit(client)}>
-                Izmeni
-              </button>
-              <button
-                className={`button outline ${client.blocked ? "is-active" : ""}`}
-                type="button"
-                onClick={() => toggleClientBlocked(client)}
-              >
-                {client.blocked ? t.unblockClient : t.blockClient}
-              </button>
-            </div>
+        {filteredClients.length === 0 && status.type !== "loading" && (
+          <div className="apt-empty">
+            <p className="apt-empty__title">{t.noClients}</p>
           </div>
-        ))}
+        )}
+
+        <div className="cli-grid">
+          {filteredClients.map((client) => (
+            <article
+              key={client.id}
+              className={`cli-card${client.blocked ? " is-blocked" : ""}`}
+            >
+              <header className="cli-card__head">
+                <h3 className="cli-card__name">{client.name}</h3>
+                {client.blocked && (
+                  <span className="status-pill cancelled">{t.blockedLabel}</span>
+                )}
+              </header>
+
+              <div className="cli-card__contact">
+                {client.phone && (
+                  <a className="cli-card__phone" href={`tel:${client.phone}`}>
+                    {client.phone}
+                  </a>
+                )}
+                {client.email && <span className="cli-card__email">{client.email}</span>}
+              </div>
+
+              <dl className="cli-card__stats">
+                <div className="cli-stat">
+                  <dt>{t.visits}</dt>
+                  <dd>{client.appointmentCount ?? 0}</dd>
+                </div>
+                <div className="cli-stat">
+                  <dt>{t.lastVisit}</dt>
+                  <dd>
+                    {client.lastAppointment
+                      ? formatSqlDateTimeDDMMYYYY(client.lastAppointment)
+                      : t.neverVisited}
+                  </dd>
+                </div>
+                {client.createdAt && (
+                  <div className="cli-stat">
+                    <dt>{t.registered}</dt>
+                    <dd>{formatSqlDateTimeDDMMYYYY(client.createdAt)}</dd>
+                  </div>
+                )}
+              </dl>
+
+              {(client.address || client.description) && (
+                <div className="cli-card__extra">
+                  {client.address && <span>{client.address}</span>}
+                  {client.description && <span>{client.description}</span>}
+                </div>
+              )}
+
+              <div className="cli-card__actions">
+                <button
+                  className="button outline"
+                  type="button"
+                  onClick={() => handleEdit(client)}
+                >
+                  Izmeni
+                </button>
+                <button
+                  className={`button outline ${client.blocked ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => toggleClientBlocked(client)}
+                >
+                  {client.blocked ? t.unblockClient : t.blockClient}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+
         <div
           className={`admin-card${editingId ? " is-editing" : ""}`}
           ref={editCardRef}

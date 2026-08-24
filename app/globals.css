@@ -1232,7 +1232,7 @@ h4 {
 
 .service-option:hover {
   transform: translateY(-2px);
-  border-color: rgba(201, 168, 76, 0.35);
+  border-color: var(--gold);
   background: rgba(201, 168, 76, 0.04);
 }
 
@@ -1243,7 +1243,7 @@ h4 {
 }
 
 .service-option.is-vip {
-  border-color: rgba(201, 168, 76, 0.45);
+  border-color: var(--gold);
   background: linear-gradient(
     145deg,
     rgba(201, 168, 76, 0.1),
@@ -1305,7 +1305,7 @@ h4 {
 
 .service-option.is-active .service-action {
   background: rgba(201, 168, 76, 0.25);
-  border-color: rgba(201, 168, 76, 0.4);
+  border-color: var(--gold);
 }
 
 .booking-empty {
@@ -1740,7 +1740,7 @@ h4 {
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: rgba(201, 168, 76, 0.45);
+  border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.1);
 }
 
@@ -3883,7 +3883,7 @@ h4 {
 }
 
 .reschedule-date-btn:hover:not(:disabled) {
-  border-color: rgba(201, 168, 76, 0.4);
+  border-color: var(--gold);
   background: var(--gold-dim);
 }
 
@@ -4588,8 +4588,8 @@ h4 {
   left: 32px;
   width: 64px;
   height: 64px;
-  border-top: 1px solid rgba(201, 168, 76, 0.45);
-  border-left: 1px solid rgba(201, 168, 76, 0.45);
+  border-top: 1px solid var(--gold);
+  border-left: 1px solid var(--gold);
   animation: luxCornerFade 4s ease-in-out infinite;
 }
 .lux-hero__corner--br {
@@ -5426,3 +5426,885 @@ h4 {
   color: #ffffff;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   NOTIFIKACIJE — admin, dark theme
+   ═══════════════════════════════════════════════════════════ */
+
+.notif-page {
+  display: grid;
+  gap: 22px;
+}
+
+.notif-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  background: linear-gradient(180deg, var(--bg) 70%, rgba(15, 15, 15, 0));
+}
+
+.notif-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.notif-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.notif-chip:hover {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+.notif-chip.is-active {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.notif-chip__count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(240, 234, 216, 0.1);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.notif-chip__count.is-alert {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.notif-bar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notif-action {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.notif-action:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+.notif-action.is-primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+}
+
+.notif-action.is-primary:hover:not(:disabled) {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+
+.notif-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.notif-alert {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(249, 95, 127, 0.4);
+  background: rgba(249, 95, 127, 0.08);
+  color: #ff9db1;
+  font-size: 0.9rem;
+}
+
+.notif-group {
+  display: grid;
+  gap: 12px;
+}
+
+.notif-group__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.notif-list {
+  display: grid;
+  gap: 12px;
+}
+
+.notif-card {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.notif-card:hover {
+  border-color: var(--gold);
+}
+
+.notif-card.is-unread {
+  border-color: var(--gold);
+  background: linear-gradient(140deg, var(--gold-dim), var(--bg-elevated) 60%);
+}
+
+.notif-card.is-unread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gold);
+}
+
+.notif-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notif-tag {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.notif-tag--danger {
+  background: rgba(249, 95, 127, 0.12);
+  border-color: rgba(249, 95, 127, 0.35);
+  color: #ff9db1;
+}
+
+.notif-tag--warn {
+  background: rgba(232, 201, 109, 0.12);
+  border-color: rgba(232, 201, 109, 0.35);
+  color: var(--gold-bright);
+}
+
+.notif-tag--ok {
+  background: rgba(47, 155, 95, 0.14);
+  border-color: rgba(47, 155, 95, 0.4);
+  color: #5fd394;
+}
+
+.notif-tag--info {
+  background: rgba(240, 234, 216, 0.08);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.notif-card__time {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: 0 0 auto;
+}
+
+.notif-card__client {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notif-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+}
+
+.notif-fact {
+  display: grid;
+  gap: 2px;
+}
+
+.notif-fact dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.notif-fact dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.notif-card__message,
+.notif-card__rest {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.notif-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.notif-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.notif-link:hover {
+  background: var(--gold-dim);
+}
+
+.notif-link.is-ghost {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.notif-link.is-ghost:hover {
+  background: rgba(240, 234, 216, 0.06);
+  color: var(--text);
+}
+
+.notif-more {
+  justify-self: center;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notif-more:hover {
+  border-color: var(--gold);
+}
+
+.notif-skeleton {
+  height: 116px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    100deg,
+    var(--bg-elevated) 30%,
+    rgba(240, 234, 216, 0.05) 50%,
+    var(--bg-elevated) 70%
+  );
+  background-size: 220% 100%;
+  animation: notif-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes notif-shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+.notif-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 54px 24px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  text-align: center;
+}
+
+.notif-empty__mark {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  color: var(--gold-bright);
+  font-size: 1.2rem;
+}
+
+.notif-empty__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notif-empty__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 620px) {
+  .notif-bar {
+    gap: 10px;
+  }
+
+  .notif-bar__actions {
+    width: 100%;
+  }
+
+  .notif-action {
+    flex: 1 1 auto;
+  }
+
+  .notif-card__time {
+    margin-left: 0;
+    width: 100%;
+    order: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-skeleton {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TERMINI — lista, filteri, kartice
+   ═══════════════════════════════════════════════════════════ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.apt-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  background: linear-gradient(180deg, var(--bg) 78%, transparent);
+}
+
+.apt-toolbar__search .input {
+  width: 100%;
+}
+
+.apt-toolbar__field {
+  min-width: 140px;
+}
+
+.apt-toolbar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.apt-day {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.apt-day__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.apt-day__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.apt-day__badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--bg);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.apt-day__count {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.apt-list {
+  display: grid;
+  gap: 10px;
+}
+
+.apt-card {
+  display: grid;
+  grid-template-columns: 82px 1fr auto;
+  gap: 18px;
+  align-items: start;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s ease;
+}
+
+.apt-card:hover {
+  border-color: var(--gold);
+}
+
+.apt-card__time {
+  display: grid;
+  gap: 2px;
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+}
+
+.apt-card__time strong {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.apt-card__time span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.apt-card__body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.apt-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.apt-card__client {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.apt-card__service {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.apt-card__price {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.apt-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.apt-card__phone {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--border);
+}
+
+.apt-card__notes {
+  margin: 2px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--gold-dim);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.apt-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.apt-card__status {
+  min-width: 130px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.apt-card__actions .button {
+  padding: 8px 14px;
+  font-size: 0.82rem;
+}
+
+.apt-card__delete {
+  border-color: rgba(214, 69, 69, 0.45);
+  color: #d64545;
+}
+
+.apt-card__delete:hover:not(:disabled) {
+  background: rgba(214, 69, 69, 0.1);
+  border-color: rgba(214, 69, 69, 0.7);
+  color: #d64545;
+}
+
+.apt-empty {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 46px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.apt-empty__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.apt-empty__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .apt-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .apt-toolbar__search {
+    grid-column: 1 / -1;
+  }
+
+  .apt-toolbar__actions {
+    grid-column: 1 / -1;
+  }
+
+  .apt-toolbar__actions .button {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .apt-card {
+    grid-template-columns: 68px 1fr;
+  }
+
+  .apt-card__actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .apt-card__status,
+  .apt-card__actions .button {
+    flex: 1 1 auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD — danasnji raspored
+   ═══════════════════════════════════════════════════════════ */
+
+.dashboard-today__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.dashboard-today__header h3 {
+  margin: 0;
+}
+
+.dashboard-today__empty {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.dashboard-today__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-today__item {
+  display: grid;
+  grid-template-columns: 62px minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-today__item:last-child {
+  border-bottom: 0;
+}
+
+.dashboard-today__time {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dashboard-today__client {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-today__service {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .dashboard-today__item {
+    grid-template-columns: 56px 1fr auto;
+    row-gap: 4px;
+  }
+
+  .dashboard-today__service {
+    grid-column: 2 / -1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KLIJENTI — lista
+   ═══════════════════════════════════════════════════════════ */
+
+.cli-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  background: linear-gradient(180deg, var(--bg) 78%, transparent);
+}
+
+.cli-toolbar__search {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.cli-toolbar__filters {
+  display: flex;
+  gap: 8px;
+}
+
+.cli-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.cli-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s ease;
+}
+
+.cli-card:hover {
+  border-color: var(--gold);
+}
+
+.cli-card.is-blocked {
+  border-color: rgba(214, 69, 69, 0.4);
+}
+
+.cli-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cli-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.cli-card__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 0.88rem;
+}
+
+.cli-card__phone {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--border);
+}
+
+.cli-card__email {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cli-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.cli-stat {
+  display: grid;
+  gap: 2px;
+}
+
+.cli-stat dt {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cli-stat dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.cli-card__extra {
+  display: grid;
+  gap: 3px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.cli-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.cli-card__actions .button {
+  padding: 8px 14px;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 620px) {
+  .cli-toolbar__filters {
+    width: 100%;
+  }
+
+  .cli-toolbar__filters .notif-chip {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}

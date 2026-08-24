@@ -79,6 +79,10 @@ export default function AdminDashboardPage() {
       projectedRevenue: "Planirana zarada",
       avgTicket: "Prosecna cena termina",
       todayAppointments: "Danasnji termini",
+      todaySchedule: "Danasnji raspored",
+      noToday: "Danas nema zakazanih termina.",
+      monthRevenue: "Ovaj mesec",
+      viewAll: "Vidi sve",
       upcomingAppointments: "Predstojeci termini",
       totalAppointments: "Ukupno termina",
       totalClients: "Ukupno klijenata",
@@ -114,6 +118,10 @@ export default function AdminDashboardPage() {
       projectedRevenue: "Projected revenue",
       avgTicket: "Average ticket",
       todayAppointments: "Today's appointments",
+      todaySchedule: "Today's schedule",
+      noToday: "No appointments scheduled today.",
+      monthRevenue: "This month",
+      viewAll: "View all",
       upcomingAppointments: "Upcoming appointments",
       totalAppointments: "Total appointments",
       totalClients: "Total clients",
@@ -149,6 +157,10 @@ export default function AdminDashboardPage() {
       projectedRevenue: "Erwarteter Umsatz",
       avgTicket: "Durchschnittswert",
       todayAppointments: "Heutige Termine",
+      todaySchedule: "Heutiger Zeitplan",
+      noToday: "Heute keine Termine.",
+      monthRevenue: "Diesen Monat",
+      viewAll: "Alle ansehen",
       upcomingAppointments: "Bevorstehende Termine",
       totalAppointments: "Gesamte Termine",
       totalClients: "Gesamte Kunden",
@@ -184,6 +196,10 @@ export default function AdminDashboardPage() {
       projectedRevenue: "Incasso previsto",
       avgTicket: "Scontrino medio",
       todayAppointments: "Appuntamenti di oggi",
+      todaySchedule: "Programma di oggi",
+      noToday: "Nessun appuntamento oggi.",
+      monthRevenue: "Questo mese",
+      viewAll: "Vedi tutti",
       upcomingAppointments: "Prossimi appuntamenti",
       totalAppointments: "Appuntamenti totali",
       totalClients: "Clienti totali",
@@ -302,6 +318,18 @@ export default function AdminDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
+  const statusLabel = (value?: string) => {
+    const map: Record<string, string> = {
+      pending: t.pending,
+      confirmed: t.confirmed,
+      completed: t.completed,
+      cancelled: t.cancelled,
+      no_show: t.noShow,
+    };
+
+    return map[value || "pending"] || value || "";
+  };
+
   const summary = useMemo(() => {
     const now = new Date();
     const todayKey = formatDateInput(now);
@@ -309,6 +337,9 @@ export default function AdminDashboardPage() {
     const monthKey = todayKey.slice(0, 7);
 
     const totalAppointments = data.appointments.length;
+    const todayList = data.appointments
+      .filter((item) => item.date === todayKey && !isCancelledLike(item.status))
+      .sort((a, b) => normalizeTime(a.time).localeCompare(normalizeTime(b.time)));
     const todayAppointments = data.appointments.filter((item) => item.date === todayKey).length;
     const activeServices = data.services.filter((item) => item.isActive !== false).length;
 
@@ -374,6 +405,7 @@ export default function AdminDashboardPage() {
       totalClients: data.clients.length,
       activeServices,
       todayAppointments,
+      todayList,
       pendingCount,
       confirmedCount,
       completedCount,
@@ -442,7 +474,9 @@ export default function AdminDashboardPage() {
           <article className="overview-card">
             <span>{t.avgTicket}</span>
             <strong>{rsdFormatter.format(summary.averageTicket)}</strong>
-            <p>{rsdFormatter.format(summary.monthRevenue)}</p>
+            <p>
+              {t.monthRevenue}: {rsdFormatter.format(summary.monthRevenue)}
+            </p>
           </article>
           <article className="overview-card">
             <span>{t.todayAppointments}</span>
@@ -460,6 +494,34 @@ export default function AdminDashboardPage() {
             <p>{t.todayBlocks}: {data.todayBlocks}</p>
           </article>
         </div>
+
+        <section className="admin-card dashboard-card dashboard-today">
+          <header className="dashboard-today__header">
+            <h3>{t.todaySchedule}</h3>
+            <Link className="button small outline" href="/admin/termini">
+              {t.viewAll}
+            </Link>
+          </header>
+
+          {summary.todayList.length === 0 ? (
+            <p className="dashboard-today__empty">{t.noToday}</p>
+          ) : (
+            <ol className="dashboard-today__list">
+              {summary.todayList.map((appointment) => (
+                <li key={appointment.id} className="dashboard-today__item">
+                  <span className="dashboard-today__time">
+                    {normalizeTime(appointment.time)}
+                  </span>
+                  <span className="dashboard-today__client">{appointment.clientName}</span>
+                  <span className="dashboard-today__service">{appointment.serviceName}</span>
+                  <span className={`status-pill ${appointment.status || "pending"}`}>
+                    {statusLabel(appointment.status)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
 
         <div className="dashboard-main-grid">
           <section className="admin-card dashboard-card">
@@ -521,7 +583,7 @@ export default function AdminDashboardPage() {
                   </span>
                 </div>
                 <span className={`status-pill ${appointment.status || "pending"}`}>
-                  {appointment.status || "pending"}
+                  {statusLabel(appointment.status)}
                 </span>
               </div>
             ))}

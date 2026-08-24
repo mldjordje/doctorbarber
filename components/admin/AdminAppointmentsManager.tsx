@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 
 import AdminShell from "@/components/admin/AdminShell";
 import { fetchServices, services as fallbackServices, type Service } from "@/lib/services";
-import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY, formatSqlDateTimeDDMMYYYY } from "@/lib/dateTime";
+import { formatDateDDMMYYYY, formatDateTimeDDMMYYYY } from "@/lib/dateTime";
 import { useLanguage, type Language } from "@/lib/useLanguage";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -88,6 +88,27 @@ const statusLabels: Record<string, string> = {
 const sourceLabels: Record<string, string> = {
   web: "Online",
   admin: "Rucno",
+};
+
+const isToday = (date: string) => date === formatDateInput(new Date());
+
+const groupAppointmentsByDate = (items: Appointment[]) => {
+  const groups: { date: string; items: Appointment[] }[] = [];
+
+  items.forEach((item) => {
+    const existing = groups.find((group) => group.date === item.date);
+    if (existing) {
+      existing.items.push(item);
+      return;
+    }
+    groups.push({ date: item.date, items: [item] });
+  });
+
+  groups.forEach((group) =>
+    group.items.sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+  );
+
+  return groups.sort((a, b) => a.date.localeCompare(b.date));
 };
 
 const normalizePhoneValue = (value: string) => value.replace(/\D+/g, "");
@@ -811,136 +832,191 @@ export default function AdminAppointmentsManager() {
   return (
     <AdminShell title="Termini" subtitle={subtitle}>
       <div className="admin-grid">
-        <div className="admin-toolbar">
-          <button className="button" type="button" onClick={fetchAppointments}>
-            Osvezi listu
-          </button>
-          {hasFilters && (
-            <button
-              className="button outline"
-              type="button"
-              onClick={() =>
-                setFilters({ query: "", date: "", status: "all", source: "all" })
-              }
-            >
-              Ocisti filtere
+        <div className="apt-toolbar">
+          <div className="apt-toolbar__search">
+            <label className="sr-only" htmlFor="filter-query">
+              Pretraga
+            </label>
+            <input
+              id="filter-query"
+              name="query"
+              className="input"
+              value={filters.query}
+              onChange={handleFilterChange}
+              placeholder="Ime, telefon, usluga"
+            />
+          </div>
+
+          <label className="sr-only" htmlFor="filter-date">
+            Datum
+          </label>
+          <input
+            id="filter-date"
+            name="date"
+            className="input apt-toolbar__field"
+            type="date"
+            value={filters.date}
+            onChange={handleFilterChange}
+          />
+
+          <label className="sr-only" htmlFor="filter-status">
+            Status
+          </label>
+          <select
+            id="filter-status"
+            name="status"
+            className="select apt-toolbar__field"
+            value={filters.status}
+            onChange={handleFilterChange}
+          >
+            <option value="all">Svi statusi</option>
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <label className="sr-only" htmlFor="filter-source">
+            Izvor
+          </label>
+          <select
+            id="filter-source"
+            name="source"
+            className="select apt-toolbar__field"
+            value={filters.source}
+            onChange={handleFilterChange}
+          >
+            <option value="all">Svi izvori</option>
+            <option value="web">Online</option>
+            <option value="admin">Rucno</option>
+          </select>
+
+          <div className="apt-toolbar__actions">
+            <button className="button outline" type="button" onClick={fetchAppointments}>
+              Osvezi
             </button>
-          )}
-          {status.type !== "idle" && status.message && (
-            <div className={`form-status ${status.type}`}>{status.message}</div>
-          )}
-        </div>
-
-        <div className="admin-card">
-          <h3>Lista termina</h3>
-          {filteredAppointments.length === 0 && status.type !== "loading" && (
-            <div className="admin-card">Nema termina za prikaz.</div>
-          )}
-          {filteredAppointments.map((appointment) => (
-            <div key={appointment.id} className="admin-card">
-              <div className={`status-pill ${appointment.status || "pending"}`}>
-                {statusLabels[appointment.status || "pending"] || appointment.status}
-              </div>
-              <strong>{appointment.serviceName}</strong>
-              <span>
-                {formatDateDDMMYYYY(appointment.date)} |{" "}
-                {normalizeTimeInput(appointment.time)}
-              </span>
-              <div>{appointment.clientName}</div>
-              <span>{appointment.phone}</span>
-              {appointment.email && <span>{appointment.email}</span>}
-              {appointment.notes && <span>Napomena: {appointment.notes}</span>}
-              <span>Izvor: {sourceLabels[appointment.source || ""] || "Nepoznato"}</span>
-              {appointment.createdAt && (
-                <span>Kreirano: {formatSqlDateTimeDDMMYYYY(appointment.createdAt)}</span>
-              )}
-              <div className="admin-actions">
-                <button
-                  className="button outline"
-                  type="button"
-                  onClick={() => handleEdit(appointment)}
-                >
-                  Izmeni
-                </button>
-                <button
-                  className="button outline"
-                  type="button"
-                  onClick={() => handleDelete(appointment.id)}
-                >
-                  Obrisi
-                </button>
-                {statusOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => updateStatus(appointment.id, option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="admin-card">
-          <h3>Pretraga termina</h3>
-          <div className="form-grid">
-            <div className="form-row">
-              <label htmlFor="filter-query">Pretraga</label>
-              <input
-                id="filter-query"
-                name="query"
-                className="input"
-                value={filters.query}
-                onChange={handleFilterChange}
-                placeholder="Ime, telefon, usluga"
-              />
-            </div>
-            <div className="form-row">
-              <label htmlFor="filter-date">Datum</label>
-              <input
-                id="filter-date"
-                name="date"
-                className="input"
-                type="date"
-                value={filters.date}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className="form-row">
-              <label htmlFor="filter-status">Status</label>
-              <select
-                id="filter-status"
-                name="status"
-                className="select"
-                value={filters.status}
-                onChange={handleFilterChange}
+            {hasFilters && (
+              <button
+                className="button outline"
+                type="button"
+                onClick={() =>
+                  setFilters({ query: "", date: "", status: "all", source: "all" })
+                }
               >
-                <option value="all">Svi</option>
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-row">
-              <label htmlFor="filter-source">Izvor</label>
-              <select
-                id="filter-source"
-                name="source"
-                className="select"
-                value={filters.source}
-                onChange={handleFilterChange}
-              >
-                <option value="all">Svi</option>
-                <option value="web">Online</option>
-                <option value="admin">Rucno</option>
-              </select>
-            </div>
+                Ocisti
+              </button>
+            )}
           </div>
         </div>
+
+        {status.type !== "idle" && status.message && (
+          <div className={`form-status ${status.type}`}>{status.message}</div>
+        )}
+
+        {filteredAppointments.length === 0 && status.type !== "loading" && (
+          <div className="apt-empty">
+            <p className="apt-empty__title">Nema termina za prikaz.</p>
+            <p className="apt-empty__hint">
+              {hasFilters
+                ? "Promeni filtere ili ih ocisti da vidis sve termine."
+                : "Novi termini se pojavljuju ovde cim ih klijent zakaze."}
+            </p>
+          </div>
+        )}
+
+        {groupAppointmentsByDate(filteredAppointments).map((group) => (
+          <section key={group.date} className="apt-day">
+            <header className="apt-day__header">
+              <h3 className="apt-day__title">
+                {formatDateDDMMYYYY(group.date)}
+                {isToday(group.date) && <span className="apt-day__badge">Danas</span>}
+              </h3>
+              <span className="apt-day__count">{group.items.length}</span>
+            </header>
+
+            <div className="apt-list">
+              {group.items.map((appointment) => {
+                const currentStatus = appointment.status || "pending";
+
+                return (
+                  <article key={appointment.id} className="apt-card">
+                    <div className="apt-card__time">
+                      <strong>{normalizeTimeInput(appointment.time)}</strong>
+                      {appointment.duration && <span>{appointment.duration}</span>}
+                    </div>
+
+                    <div className="apt-card__body">
+                      <div className="apt-card__head">
+                        <h4 className="apt-card__client">{appointment.clientName}</h4>
+                        <span className={`status-pill ${currentStatus}`}>
+                          {statusLabels[currentStatus] || currentStatus}
+                        </span>
+                      </div>
+
+                      <p className="apt-card__service">
+                        {appointment.serviceName}
+                        {typeof appointment.price === "number" && (
+                          <span className="apt-card__price">
+                            {appointment.price.toLocaleString("sr-RS")} RSD
+                          </span>
+                        )}
+                      </p>
+
+                      <div className="apt-card__meta">
+                        {appointment.phone && (
+                          <a className="apt-card__phone" href={`tel:${appointment.phone}`}>
+                            {appointment.phone}
+                          </a>
+                        )}
+                        {appointment.email && <span>{appointment.email}</span>}
+                        <span>{sourceLabels[appointment.source || ""] || "Nepoznato"}</span>
+                      </div>
+
+                      {appointment.notes && (
+                        <p className="apt-card__notes">Napomena: {appointment.notes}</p>
+                      )}
+                    </div>
+
+                    <div className="apt-card__actions">
+                      <label className="sr-only" htmlFor={`status-${appointment.id}`}>
+                        Status termina
+                      </label>
+                      <select
+                        id={`status-${appointment.id}`}
+                        className="select apt-card__status"
+                        value={currentStatus}
+                        onChange={(event) =>
+                          updateStatus(appointment.id, event.target.value)
+                        }
+                      >
+                        {statusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="button outline"
+                        type="button"
+                        onClick={() => handleEdit(appointment)}
+                      >
+                        Izmeni
+                      </button>
+                      <button
+                        className="button outline apt-card__delete"
+                        type="button"
+                        onClick={() => handleDelete(appointment.id)}
+                      >
+                        Obrisi
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
 
         <div className="admin-card">
           <h3>{editingId ? "Izmeni termin" : "Novi termin"}</h3>
