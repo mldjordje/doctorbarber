@@ -323,7 +323,8 @@ const buildSlots = (
   appointments: AvailabilityItem[],
   blocks: AvailabilityItem[],
   minBookingLeadMinutes = 0,
-  vipWindow?: Service["vipWindow"]
+  vipWindow?: Service["vipWindow"],
+  minServiceMinutes?: number
 ) => {
   const dateObj = new Date(`${date}T00:00:00`);
   if (!isWorkingDay(dateObj)) {
@@ -365,6 +366,12 @@ const buildSlots = (
   }
 
   const stepMinutes = slotMinutes;
+  const minGapMinutes = Math.max(0, minServiceMinutes || slotMinutes);
+  const boundaries = [
+    closeMinutes,
+    ...reserved.map((item) => item.start),
+    ...breakWindows.map((item) => item.start),
+  ];
 
   for (let start = openMinutes; start + required <= closeMinutes; start += stepMinutes) {
     const slotDateTime = new Date(`${date}T${minutesToTime(start)}:00`).getTime();
@@ -377,9 +384,20 @@ const buildSlots = (
       continue;
     }
     const overlap = reserved.some((item) => start < item.end && end > item.start);
-    if (!overlap) {
-      slots.push(minutesToTime(start));
+    if (overlap) {
+      continue;
     }
+
+    // Slot ostaje slobodan samo ako posle njega ne ostaje rupa manja od
+    // najkraceg trajanja usluge — takva rupa se ionako nikad ne moze popuniti,
+    // pa se ne nudi da bi se termini sabili jedan uz drugi.
+    const nextBoundary = Math.min(...boundaries.filter((b) => b >= end));
+    const gap = nextBoundary - end;
+    if (gap !== 0 && gap < minGapMinutes) {
+      continue;
+    }
+
+    slots.push(minutesToTime(start));
   }
 
   return slots;
@@ -818,6 +836,13 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
     [serviceItems]
   );
   const orderedServices = useMemo(() => orderServices(activeServices), [activeServices]);
+  const minServiceDurationMinutes = useMemo(() => {
+    const durations = activeServices
+      .filter((service) => !service.vipWindow)
+      .map((service) => parseDurationMinutes(service.duration))
+      .filter((value) => value > 0);
+    return durations.length ? Math.min(...durations) : undefined;
+  }, [activeServices]);
 
   const calendarDays = useMemo(
     () => buildCalendarDays(calendarMonth, firstWorkingDay, lastDay),
@@ -836,7 +861,8 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
         [],
         [],
         bookingSettings.minBookingLeadMinutes,
-        selectedService.vipWindow
+        selectedService.vipWindow,
+        minServiceDurationMinutes
       ).length;
     });
     return map;
@@ -845,6 +871,7 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
     selectedServiceDurationMinutes,
     selectedService?.vipWindow,
     bookingSettings.minBookingLeadMinutes,
+    minServiceDurationMinutes,
   ]);
 
   const selectedDateObj = useMemo(
@@ -887,7 +914,8 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
         appointments,
         blocks,
         bookingSettings.minBookingLeadMinutes,
-        selectedService.vipWindow
+        selectedService.vipWindow,
+        minServiceDurationMinutes
       );
 
       return [date, slots] as const;
@@ -927,6 +955,7 @@ export default function BookingForm({ language = "sr" }: BookingFormProps) {
     selectedService?.id,
     selectedService?.vipWindow,
     bookingSettings.minBookingLeadMinutes,
+    minServiceDurationMinutes,
   ]);
 
   useEffect(() => {
